@@ -1,0 +1,293 @@
+Metadata-Version: 2.1
+Name: django-geojson
+Version: 3.1.0
+Summary: Serve vectorial map layers with Django
+Home-page: https://github.com/makinacorpus/django-geojson
+Author: Mathieu Leplatre
+Author-email: mathieu.leplatre@makina-corpus.com
+License: LPGL, see LICENSE file.
+Download-URL: http://pypi.python.org/pypi/django-geojson/
+Platform: UNKNOWN
+Classifier: Topic :: Utilities
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Intended Audience :: Developers
+Classifier: Environment :: Web Environment
+Classifier: Framework :: Django
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Requires-Python: >=3.5
+Requires-Dist: Django (>=2.2)
+Provides-Extra: docs
+Requires-Dist: sphinx ; extra == 'docs'
+Requires-Dist: sphinx-autobuild ; extra == 'docs'
+Provides-Extra: field
+Requires-Dist: jsonfield ; extra == 'field'
+Requires-Dist: django-leaflet (>=0.12) ; extra == 'field'
+
+==============
+django-geojson
+==============
+
+See the `documentation <https://django-geojson.readthedocs.io/en/latest/>`_ for more information.
+
+*django-geojson* is a set of tools to manipulate GeoJSON with Django :
+
+* (De)Serializer for (Geo)Django objects, querysets and lists
+* Base views to serve GeoJSON map layers from models
+* GeoJSON model and form fields to avoid spatial database backends
+  (compatible with *django-leaflet* for map widgets)
+
+
+.. image:: https://readthedocs.org/projects/django-geojson/badge/?version=latest
+    :target: http://django-geojson.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
+.. image:: https://img.shields.io/pypi/v/django-geojson.svg
+        :target: https://pypi.python.org/pypi/django-geojson
+
+.. image:: https://img.shields.io/pypi/dm/django-geojson.svg
+        :target: https://pypi.python.org/pypi/django-geojson
+
+.. image:: https://travis-ci.org/makinacorpus/django-geojson.png?branch=master
+    :target: https://travis-ci.org/makinacorpus/django-geojson
+
+.. image:: https://coveralls.io/repos/makinacorpus/django-geojson/badge.png?branch=master
+    :target: https://coveralls.io/r/makinacorpus/django-geojson
+
+
+=======
+AUTHORS
+=======
+
+* Mathieu Leplatre <mathieu.leplatre@makina-corpus.com>
+* Glen Robertson author of django-geojson-tiles at: https://github.com/glenrobertson/django-geojson-tiles/
+* @jeffkistler's author of geojson serializer at: https://gist.github.com/967274
+* Ben Welsh and Lukasz Dziedzia for `quick test script <http://datadesk.latimes.com/posts/2012/06/test-your-django-app-with-travisci/>`_
+* Florent Lebreton http://github.com/fle
+* Julien Le Sech http://www.idreammicro.com
+* Kevin Cooper @kevcooper
+* Achille Ash @AchilleAsh
+* Yann Fouillat (alias Gagaro) <yann.fouillat@makina-corpus.com>
+
+Version 1.X:
+
+* Daniel Sokolowski, serializer snippet
+* ozzmo, python 2.6 compatibility
+
+|makinacom|_
+
+.. |makinacom| image:: http://depot.makina-corpus.org/public/logo.gif
+.. _makinacom:  http://www.makina-corpus.com
+
+=======
+LICENSE
+=======
+
+Lesser GNU Public License
+
+
+=========
+CHANGELOG
+=========
+
+3.1.0 (2020-10-27)
+==================
+
+- Drop support for Python 2 and Django < 2.2
+- Fix warnings in Django 3.1
+- Use explicit srid in get_queryset #106
+- Add support for crs_type using the view options #107
+
+3.0.0 (2020-03-02)
+===================
+
+- Fix with_modelname option after first iteration
+- Drop Django 1.11 support
+- jsonfield 3.0 support, drop 2.x support
+
+2.12.0 (2018-12-05)
+===================
+
+- Change media type to 'application/geo+json'
+- Make with_modelname option available in views
+- Drop Django 1.8 support.
+- Fixed unnecessary GDAL dependency. (#100, thanks @coredumperror)
+
+2.11.0 (2017-12-05)
+===================
+
+- Django 2.0 support.
+- Fix setup.py encoding error.
+
+2.10.0 (2017-02-28)
+===================
+
+- python 3.5 support.
+
+
+2.9.1 (2016-08-22)
+==================
+
+** Bug fixes **
+
+- Remove deprecation warnings with Django 1.8 (#78, thanks @AchilleAsh)
+
+
+2.9.0 (2016-02-08)
+==================
+
+** New features **
+
+- handle natural keys in views (#74, thanks Achille Ash!)
+
+** Bug fixes **
+
+- Add Django 1.9 compatibility (#69, thanks Julien Le Sech!)
+- Fix imports in view.py to work without GEOS (#62, thanks Kevin Cooper!)
+
+
+2.8.1 (2015-06-17)
+==================
+
+** Bug fixes**
+
+- Fixed detection of GEOS (thanks Kevin Cooper!)
+
+2.8.0 (2015-04-17)
+==================
+
+** New features **
+
+- Support GeoJSON specification for named crs (thanks Alvin Lindstam)
+
+** Bug fixes **
+
+- Add python 3.2 compatibility (thanks Nikolay Korotkiy, fixes #55)
+- Fix tests on Django >= 1.7 (thanks Manel Clos)
+
+
+2.7.0 (2015-02-21)
+==================
+
+** New features **
+
+- Add a with_modelname option to serializer
+
+** Bug fixes **
+
+- change 'fields' to 'properties' in code example
+- Adds a warning for "Module version, as defined in PEP-0396
+
+
+2.6.0 (2014-07-21)
+==================
+
+** New features **
+
+- Django GeoJSON fields without libgeos installed (thanks Florent Lebreton)
+- Properties can be a tuple (fixes #34)
+
+
+2.5.0 (2014-06-03)
+==================
+
+** New features **
+
+- Add vector tiles view
+- Improved `geojsonfeature` template tag (fixes #15, #16)
+- Add various GeoJSON fields, for each geometry type
+
+** Bug fixes **
+
+- Fix (de)serializers not being usable from command-line (fixes #28)
+- Fix import attempt for *django-leaflet* (fixes #27), by Seyi Ogunyemi
+- Fix missed SRID after copying a geometry in ``_handle_geom``, by Biel Frontera
+
+** Internal changes **
+
+- Specify django-leaflet minimal version for GeoJSON model field
+- Got rid of shapely for deserialization
+
+
+2.4.0 (2014-03-22)
+==================
+
+- Add GeoJSON fields
+
+
+2.3.0 (2014-02-08)
+==================
+
+- Python 3 support (thanks @amarandon)
+- Add bbox at feature level (thanks @7wonders)
+
+
+2.2.0 (2013-12-18)
+==================
+
+- Deserialization: add ability to specify model name as option (thanks @Vross)
+- Deserialization: look-up ``ìd`` value in properties whe missing at feature level: (thanks @Vross)
+
+
+2.1.1 (2013-08-21)
+==================
+
+- Set default SRID to 4326 in generic GeoJSON views.
+
+
+2.1.0 (2013-08-19)
+==================
+
+- Serialize reversed relations using natural keys (fixes #8)
+- Support empty geometries (None or NULL in Db)
+- Fix serializing property in upper class
+
+2.0.1 (2013-07-10)
+==================
+
+- Fix usage of simplify.
+- Expose ``force2d`` option in view
+- Allow to have ``pk`` or ``id`` in properties if explicitly listed
+
+2.0.0 (2013-07-09)
+==================
+
+- Complete rewrite using @jeffkistler and @glenrobertson code
+- CRS is added to GeoJSON ouput by default
+- Ability to build ``pk`` dynamically by passing a lambda
+- Ability to provide a ``bbox``
+- Ability to use Django natural keys
+- Support of *ValuesQuerySet*
+- Support of *ForeignKey* and *ManyToMany*
+- Added ``force2d`` option
+
+** Backwards incompatible changes **
+
+- Geom field is not guessed automatically : Use ``geometry_field`` option, default is ``'geom'``.
+- no more ``pk`` in properties : use feature ``id``, or list ``pk`` in properties explicitly.
+- ``fields`` list in ``GeoJSONLayer`` was renamed ``properties``.
+
+1.2.0 (2013-05-22)
+==================
+
+- Shapely is now optional (used for deserialization only)
+- Add Django to requirements
+- Skip a step in GeoJSON conversion of geometries (fixes #6)
+
+
+1.1.0 (2013-03-06)
+==================
+
+- Django 1.5 support
+- Fix template tag geojsonfeature on empty geometries
+
+1.0.0 (2012-08-03)
+==================
+
+- Initial working version.
+
+
