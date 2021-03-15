@@ -6,7 +6,7 @@
 python -m venv .djleaflet
 pip install --upgrade pip
 pip install -r requirements.txt
-django-admin startproject mapProje .
+django-admin startproject mapProj .
 cd mapProj
 manage startapp core
 manage migrate
@@ -32,12 +32,15 @@ First thing that i bielieve would worth test: if model has geom atribute, and it
 This could be validate as well.
 
 ```python
+from django.contrib import admin
 from leaflet.admin import LeafletGeoAdmin
-from .models import model
+from mapProj.core.models import FloraOccurrence
+
+admin.site.register(FloraOccurrence, LeafletGeoAdmin)
 
 ```
 
-#### Add statics root
+#### Add statics urls
 
 ```python
 STATIC_URL = '/static/'
