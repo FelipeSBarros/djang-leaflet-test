@@ -7,8 +7,8 @@ class FloraOccurrence(models.Model):
     species_name = models.CharField(max_length=100, verbose_name='Nomre de la especie', null=False)
     Observations = models.TextField(verbose_name='Observaciones')
     picture = models.ImageField()
-    lon = models.FloatField()
-    lat = models.FloatField()
+    lon = models.FloatField(null=True, blank=True)
+    lat = models.FloatField(null=True, blank=True)
     geom = PointField(null=True, blank=True)
 
     def __str__(self):
