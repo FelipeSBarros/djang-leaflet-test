@@ -1,5 +1,4 @@
 from django.contrib import admin
-from leaflet.admin import LeafletGeoAdmin
-from mapProj.core.models import FloraOccurrence
+from mapProj.core.models import Fenomeno
 
-admin.site.register(FloraOccurrence, LeafletGeoAdmin)
+admin.site.register(Fenomeno)

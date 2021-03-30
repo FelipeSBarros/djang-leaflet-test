@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.urls import path
 from djgeojson.views import GeoJSONLayerView
 
-from mapProj.core.models import FloraOccurrence
+# from mapProj.core.models import FloraOccurrence
 
 urlpatterns = [
     path('admin/', admin.site.urls),
