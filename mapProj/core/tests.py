@@ -1,6 +1,6 @@
 from django.test import TestCase
 from mapProj.core.models import Fenomeno
-from djgeojson.fields import PointField
+# TODO add lat/log no model, rmeove geom do admin, sobreescrever o save para o geom receber valores do lat/long
 
 
 class ModelGeomTest(TestCase):
