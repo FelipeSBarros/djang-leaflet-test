@@ -1,7 +1,12 @@
 from django.test import TestCase
+from django.contrib.admin.sites import AdminSite
 from mapProj.core.models import Fenomeno
-# TODO add lat/log no model, rmeove geom do admin, sobreescrever o save para o geom receber valores do lat/long
+from mapProj.core.admin import FenomenoAdmin
+import geojson
+# TODO add lat/log no model, remove geom do admin, overwrite save method to pass geom the lat/lon values
 
+# from . import admin
+# from . import models
 
 class ModelGeomTest(TestCase):
     def setUp(self):
@@ -9,12 +14,29 @@ class ModelGeomTest(TestCase):
             name='Arvore',
             data='2020-11-06',
             hora='09:30:00',
-            geom={'type': 'Point', 'coordinates': [0, 0]}
+            geom=geojson.Point((0, 0))
         )
 
     def test_create(self):
         self.assertTrue(Fenomeno.objects.exists())
 
+    def test_geom(self):
+        geometry = geojson.Feature(geometry=self.fenomeno.geom)
+        valid = geometry.is_valid
+        self.assertTrue(valid)
 
-    def test_geom_is_Point(self):
-        self.assertEqual(self.fenomeno.geom.get("type"), "Point")
+class TestPostAdmin(TestCase):
+    def test_create(self):
+        fenomeno = Fenomeno(
+            name='Arvore',
+            data='2020-11-06',
+            hora='09:30:00',
+            geom={'type': 'Point', 'coordinates': [0, 0]}
+        )
+        adm = FenomenoAdmin(model=Fenomeno, admin_site=AdminSite())
+        adm.save_model(obj=fenomeno, request=None, form=None, change=None)
+        # some test assertions here
+        # site = AdminSite()
+        # fenomeno_admin = admin.FenomenoAdmin(models.Fenomeno, site)
+        # result = fenomeno_admin.response_post_save_add(self, fenomeno)
+        # self.assertTrue(Fenomeno.objects.exists())
