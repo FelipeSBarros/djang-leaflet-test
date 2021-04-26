@@ -1,6 +1,5 @@
 from django.db import models
 from djgeojson.fields import PointField
-from geojson import Point
 
 
 class Fenomenos(models.Model):

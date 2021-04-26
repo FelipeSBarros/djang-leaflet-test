@@ -2,13 +2,12 @@ from django.core.exceptions import ValidationError
 from django.forms import ModelForm, HiddenInput
 from mapProj.core.models import Fenomenos
 from geojson import Point
-import geojson
+
 
 class FenomenosForm(ModelForm):
     class Meta:
         model = Fenomenos
         fields = '__all__'
-        #exclude = ['geom']
         widgets = {
             'geom': HiddenInput(),
         }
