@@ -1,14 +1,7 @@
 from django.test import TestCase
-from django.contrib.admin.sites import AdminSite
 from mapProj.core.models import Fenomenos
-from mapProj.core.admin import FenomenoAdmin
-import geojson
 from mapProj.core.forms import FenomenosForm
 
-# TODO add lat/log no model, remove geom do admin, overwrite save method to pass geom the lat/lon values
-
-# from . import admin
-# from . import models
 
 class ModelGeomTest(TestCase):
     def setUp(self):
@@ -17,18 +10,11 @@ class ModelGeomTest(TestCase):
             data='2020-11-06',
             hora='09:30:00',
             longitude = 22.0,
-            latitude = 22.0,
-            # geom=geojson.Point((22, 22))
+            latitude = 22.0
         )
 
     def test_create(self):
         self.assertTrue(Fenomenos.objects.exists())
-
-    def test_geom(self):
-        # geometry = geojson.Feature(geometry=self.fenomeno.geom)
-        geometry = self.fenomeno.geom
-        valid = geometry.is_valid
-        self.assertTrue(valid)
 
 
 class FenomenosFormTest(TestCase):

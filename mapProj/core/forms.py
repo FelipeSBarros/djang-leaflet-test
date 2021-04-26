@@ -12,9 +12,9 @@ class FenomenosForm(ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        # lon = cleaned_data.get('longitude')
-        # lat = cleaned_data.get('latitude')
-        # cleaned_data['geom'] = Point((lon, lat))
-        if not cleaned_data.geom.is_valid:
+        lon = cleaned_data.get('longitude')
+        lat = cleaned_data.get('latitude')
+        cleaned_data['geom'] = Point((lon, lat))
+        if not cleaned_data['geom'].is_valid:
             raise ValidationError('Deu ruim')
         return cleaned_data

@@ -10,8 +10,4 @@ class Fenomenos(models.Model):
     hora = models.TimeField()
     longitude = models.FloatField()
     latitude = models.FloatField()
-    # geom = PointField(blank=True)
-
-    @property
-    def geom(self):
-        return Point((self.longitude, self.latitude))
+    geom = PointField(blank=True)
