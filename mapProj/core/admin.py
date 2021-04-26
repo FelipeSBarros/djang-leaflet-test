@@ -1,7 +1,7 @@
 from django.contrib import admin
-from mapProj.core.models import Fenomeno
+from mapProj.core.models import Fenomenos
 
 class FenomenoAdmin(admin.ModelAdmin):
-    model = Fenomeno
+    model = Fenomenos
 
-admin.site.register(Fenomeno, FenomenoAdmin)
+admin.site.register(Fenomenos, FenomenoAdmin)

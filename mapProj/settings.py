@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
+    'test_without_migrations',
     'mapProj.core',
     'djgeojson',
 ]
