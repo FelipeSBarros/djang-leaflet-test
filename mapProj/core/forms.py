@@ -8,7 +8,7 @@ class FenomenosForm(ModelForm):
     class Meta:
         model = Fenomenos
         fields = '__all__'
-        # exclude = ['geom']
+        exclude = ['geom']
 
     def clean(self):
         cleaned_data = super().clean()

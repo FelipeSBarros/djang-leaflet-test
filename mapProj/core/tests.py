@@ -30,21 +30,3 @@ class FenomenosFormTest(TestCase):
         """"geom Point must be valid"""
         validation = self.form.is_valid()
         self.assertTrue(validation)
-
-# class TestPostAdmin(TestCase):
-#     def test_create(self):
-#         fenomeno = Fenomeno(
-#             name='Arvore',
-#             data='2020-11-06',
-#             hora='09:30:00',
-#             longitude=22.0,
-#             latitude=22.0,
-#             geom={'type': 'Point', 'coordinates': [0, 0]}
-#         )
-#         adm = FenomenoAdmin(model=Fenomeno, admin_site=AdminSite())
-#         adm.save_model(obj=fenomeno, request=None, form=None, change=None)
-        # some test assertions here
-        # site = AdminSite()
-        # fenomeno_admin = admin.FenomenoAdmin(models.Fenomeno, site)
-        # result = fenomeno_admin.response_post_save_add(self, fenomeno)
-        # self.assertTrue(Fenomeno.objects.exists())
