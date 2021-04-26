@@ -10,3 +10,6 @@ class Fenomenos(models.Model):
     longitude = models.FloatField()
     latitude = models.FloatField()
     geom = PointField(blank=True)
+
+    def __str__(self):
+        return self.name
