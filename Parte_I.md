@@ -143,7 +143,7 @@ Por isso eu carrego a classe `Point` do módulo `geojson` e designo o campo `geo
 
 Obs.: Como não espero que o usuário carregue no formulário o json do campo `geom`, e como não posso excluí-lo do mesmo, já que ele será construído no processo de limpeza, usei o `HiddenInput()` `widget` para escondê-lo.
 
-#### Mas ~~antes,~~ [e o] teste~~!~~?
+#### Mas ~~antes,~~ [e o] teste ~~!~~ ?
 
 Pois é, eu adoraria apresentar isso usando a abordagem *Test Driven Development (TDD)*. Mas, talvez pela falta de prática, conhecimento e etc, vou apenas apontar onde e como eu testaria esse sistema. Faço isso como uma forma de estudo, mesmo. Também me pareceu complicado apresentar a abordagem TDD em um artigo, já que a mesma se faz de forma incremental.
 
