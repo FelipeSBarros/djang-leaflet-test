@@ -1,25 +1,25 @@
 from django.test import TestCase
 from geojson import Point
 
-from mapProj.core.models import Fenomenos
-from mapProj.core.forms import FenomenosForm
+from mapProj.core.models import Fenomeno
+from mapProj.core.forms import FenomenoForm
 
 
 class ModelGeomTest(TestCase):
     def setUp(self):
-        self.fenomeno = Fenomenos.objects.create(
+        self.fenomeno = Fenomeno.objects.create(
             nome='Arvore',
             data='2020-11-06',
             hora='09:30:00'
         )
 
     def test_create(self):
-        self.assertTrue(Fenomenos.objects.exists())
+        self.assertTrue(Fenomeno.objects.exists())
 
 
-class FenomenosFormTest(TestCase):
+class FenomenoFormTest(TestCase):
     def setUp(self):
-        self.form = FenomenosForm({
+        self.form = FenomenoForm({
             'nome': 'Teste',
             'data': '2020-01-01',
             'hora': '09:12:12',

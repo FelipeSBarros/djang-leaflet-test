@@ -1,9 +1,9 @@
 from django.contrib import admin
-from mapProj.core.models import Fenomenos
-from mapProj.core.forms import FenomenosForm
+from mapProj.core.models import Fenomeno
+from mapProj.core.forms import FenomenoForm
 
 class FenomenoAdmin(admin.ModelAdmin):
-    model = Fenomenos
-    form = FenomenosForm
+    model = Fenomeno
+    form = FenomenoForm
 
-admin.site.register(Fenomenos, FenomenoAdmin)
+admin.site.register(Fenomeno, FenomenoAdmin)

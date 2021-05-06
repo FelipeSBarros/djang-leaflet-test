@@ -6,7 +6,7 @@ Por simples, entende-se:
 * Um sistema que não demande operações e consultas espaciais, mas que garanta a qualidade dos dados geográficos;
 
 ### Visão geral da proposta:
-Vamos criar um ambiente virtual Python e instalar a framework Django, para criar o sistema, assim como alguns módulos como [`jsonfield`](https://pypi.org/project/jsonfield/), que nos vai habilitar a criação de campos `JSON` em nossa base de dados; [`django-geojson`](https://pypi.org/project/django-geojson/), que depende do `jsonfield` e será responsável por habilitar instâncias de dados geográficos, baseando-se em JSON; [`geojson`](https://pypi.org/project/geojson/), que possui todas as regras *básicas* de validação de dados geográficos, usando a estrutura homônima, [`geojson`](https://geojson.org/).
+Vamos criar um ambiente virtual Python e instalar a framework Django, para criar o sistema, assim como alguns módulos como [`jsonfield`](https://pypi.org/project/jsonfield/), que nos vai habilitar a criação de campos `JSON` em nossa base de dados; [`django-geojson`](https://pypi.org/project/django-geojson/), que depende do `jsonfield` e será responsável por habilitar instâncias de dados geográficos, baseando-se em `JSON`; [`geojson`](https://pypi.org/project/geojson/), que possui todas as regras *básicas* de validação de dados geográficos, usando a estrutura homônima, [`geojson`](https://geojson.org/).
 
 O uso desses três módulos nos permitirá o desenvolvimento de um sistema de gestão de dados geográficos sem a necessidade de termos instalado um sistema de gerenciamento de dados geográficos, como o PostGIS. Sim, nosso sistema será bem limitado a algumas tarefas. Mas em contrapartida, poderemos desenvolvê-lo e implementar soluções "corriqueiras" de forma facilitada. 
 
@@ -58,7 +58,7 @@ Perceba que para poder acessar as classes de alto nível criadas pelo pacote `dj
 
 ### Criando a base de dados
 
-Ainda que eu concorde com o Henrique Bastos, de que a visão de começar os projetos Django pelo `models.py` é um tanto "perigosa", por colocar ênfase em uma parte da app e, em muitos casos, negligenciar vários outros atributos e ferramentas que o Django nos oferece, irei desconsiderar sua abordagem. Afinal, o objetivo deste artigo não é explorar todo o potencial do Django, mas sim apresentar uma solução simples no desenvolvimento e implementação de um sistema de gestão de dados geográficos para servir como ferramenta de estudo e projeto prático.
+Ainda que eu concorde com o Henrique Bastos, que a visão de começar os projetos Django pelo `models.py` é um tanto "perigosa", por colocar ênfase em uma parte da app e, em muitos casos, negligenciar vários outros atributos e ferramentas que o Django nos oferece, irei desconsiderar sua abordagem. Afinal, o objetivo deste artigo não é explorar todo o potencial do Django, mas sim apresentar uma solução simples no desenvolvimento e implementação de um sistema de gestão de dados geográficos para servir como ferramenta de estudo e projeto prático.
 
 Em `models.py` usaremos instâncias de alto nível que o Django nos brinda para criar e configurar os campos e as tabelas que teremos em nosso sistema, bem como alguns comportamentos do sistema.
 
@@ -74,11 +74,13 @@ from django.db import models
 from djgeojson.fields import PointField
 
 
-class Fenomenos(models.Model):
+class Fenomeno(models.Model):
     nome = models.CharField(max_length=100,
                             verbose_name='Fenomeno mapeado')
     data = models.DateField(verbose_name='Data da observação')
     hora = models.TimeField()
+    # longitude = models.FloatField()
+    # latitude = models.FloatField()
     geom = PointField(blank=True)
 
     def __str__(self):
@@ -86,7 +88,7 @@ class Fenomenos(models.Model):
 
 ```
 
-Percebam que eu importo de `djgeojson` a classe `PointField`. O que o `django-geojson` fez foi criar uma classe [com estrutura de dados geográfico] de alto nível, mas que no banco de dados será armazenado em um campo JSON. Vale a pena deixar claro: não espero que o usuário do meu sistema saiba preencher o campo `geom` em formato `JSON`. Por isso, criarei no `forms.py`, os campos *latitude* e *longitude* e a partir deles, o campo geom será preenchido. Detalharei esse processo mais adiante. 
+Percebam que eu importo de `djgeojson` a classe `PointField`. O que o `django-geojson` fez foi criar uma classe [com estrutura de dados geográfico] de alto nível, mas que no banco de dados será armazenado em um campo `JSON`. Vale a pena deixar claro: não espero que o usuário do meu sistema saiba preencher o campo `geom` em formato `JSON`. Por isso, criarei no `forms.py`, os campos *latitude* e *longitude* e a partir deles, o campo geom será preenchido. Detalharei esse processo mais adiante. 
 
 Pronto, já temos o modelo da 'tabela de dados "geográficos"', mas esse modelo ainda não foi registrado em nossa base. Para isso:
 
@@ -110,33 +112,31 @@ Digo isso, pois ao meu `FenomenosForm`, eu sobreescrevo o método `clean()`, que
 ```python
 # forms.py
 from django.core.exceptions import ValidationError
-from django.forms import ModelForm, HiddenInput
+from django.forms import ModelForm, FloatField
+from mapProj.core.models import Fenomeno
 from geojson import Point
 
-from mapProj.core.models import Fenomenos
 
-
-class FenomenosForm(ModelForm):
-    latitude = forms.FloatField()
-    longitude = forms.FloatFiled()
-    
+class FenomenoForm(ModelForm):
+    longitude = FloatField()
+    latitude = FloatField()
     class Meta:
-        model = Fenomenos
-        fields = ('nome', 'data', 'latitude', 'longitude')        
+        model = Fenomeno
+        fields = ('nome', 'data', 'hora', 'latitude', 'longitude')
 
     def clean(self):
         cleaned_data = super().clean()
         lon = cleaned_data.get('longitude')
         lat = cleaned_data.get('latitude')
         cleaned_data['geom'] = Point((lon, lat))
-        
+
         if not cleaned_data['geom'].is_valid:
-            raise ValidationError('Geometria com erro')
+            raise ValidationError('Geometria inválida')
         return cleaned_data
 
 ```
 
-Ainda que pareça simples, não foi fácil chegar a essa estratégia de estruturação dos `models` e `forms`. Contei com a ajuda e paciencia do [Cuducos](https://twitter.com/cuducos). Inicialmente eu mantinha latitude e longitude no meu `models`. Mas com isso eu tenho redundância de dados e uma abertura a erros potenciais. Uma alternativa, discutida com o Cuducos foi de ter tanto *latitude* como *longitude* no `models`, mas o atributo `geom` como [propriedade](https://docs.python.org/3/howto/descriptor.html#properties). Ainda que seja uma estratégia consistente, a redundância se mantém.
+Ainda que pareça simples, não foi fácil chegar a essa estratégia de estruturação dos `models` e `forms`. Contei com a ajuda e paciencia do [Cuducos](https://twitter.com/cuducos). Inicialmente eu mantinha latitude e longitude no meu `models`. Mas fazendo assim, além de ter uma redundância de dados e uma abertura a erros potenciais, estaria armazenando dados que não devo usar depois de contruir o campo geom. Uma alternativa, discutida com o Cuducos foi de ter tanto *latitude* como *longitude* no `models`, mas o atributo `geom` como [propriedade](https://docs.python.org/3/howto/descriptor.html#properties). Ainda que seja uma estratégia consistente, a redundância se mantém.
 
 O processo de validação do campo `geom` também foi fruto de muita discussão. De forma resumida, percebi que o `djgeojson` apenas valida o tipo de geometria do campo e não a sua consistência. Ao conversar com os desenvolvedores, me disseram que toda a lógica de validação de objetos `geojson` estavam sendo centralizados no módulo homônimo.
 
@@ -176,25 +176,25 @@ O teste seguinte será relacionado ao formulário e por isso instancio um formul
 from django.test import TestCase
 from geojson import Point
 
-from mapProj.core.models import Fenomenos
-from mapProj.core.forms import FenomenosForm
+from mapProj.core.models import Fenomeno
+from mapProj.core.forms import FenomenoForm
 
 
 class ModelGeomTest(TestCase):
     def setUp(self):
-        self.fenomeno = Fenomenos.objects.create(
+        self.fenomeno = Fenomeno.objects.create(
             nome='Arvore',
             data='2020-11-06',
             hora='09:30:00'
         )
 
     def test_create(self):
-        self.assertTrue(Fenomenos.objects.exists())
+        self.assertTrue(Fenomeno.objects.exists())
 
 
-class FenomenosFormTest(TestCase):
+class FenomenoFormTest(TestCase):
     def setUp(self):
-        self.form = FenomenosForm({
+        self.form = FenomenoForm({
             'nome': 'Teste',
             'data': '2020-01-01',
             'hora': '09:12:12',
@@ -232,14 +232,14 @@ Para facilitar, vou usar o django-admin. Trata-se de uma aplicação já criada 
 ```python
 #admin.py
 from django.contrib import admin
-from mapProj.core.models import Fenomenos
-from mapProj.core.forms import FenomenosForm
+from mapProj.core.models import Fenomeno
+from mapProj.core.forms import FenomenoForm
 
 class FenomenoAdmin(admin.ModelAdmin):
-    model = Fenomenos
-    form = FenomenosForm
+    model = Fenomeno
+    form = FenomenoForm
 
-admin.site.register(Fenomenos, FenomenoAdmin)
+admin.site.register(Fenomeno, FenomenoAdmin)
 ```
 
 ### To be continued...
