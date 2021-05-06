@@ -12,7 +12,7 @@ O uso desses três módulos nos permitirá o desenvolvimento de um sistema de ge
 
 No presente exemplo estarei usando [SQLite](https://www.sqlite.org/index.html), como base de dados.
 
-Nosso projeto se chamará de mapProj. E nele vou criar uma app, dentro da pasta do meu projeto `Django`, chamada `core`. Essa organização e nomenclatura usada, vem das sugestões do [Henrique Bastos](https://github.com/okfn-brasil/jarbas/issues/28#issuecomment-256117262). Afinal, o sistema está nascendo. Ainda que eu tenha uma ideia do que ele será, é interessante iniciar com uma aplicação "genérica" e a partir do momento que o sistema se torne complexo, poderemos desacoplá-la em diferentes aplicações.
+Nosso projeto se chamará de *map_proj*. E nele vou criar uma app, dentro da pasta do meu projeto `Django`, chamada `core`. Essa organização e nomenclatura usada, vem das sugestões do [Henrique Bastos](https://github.com/okfn-brasil/jarbas/issues/28#issuecomment-256117262). Afinal, o sistema está nascendo. Ainda que eu tenha uma ideia do que ele será, é interessante iniciar com uma aplicação "genérica" e a partir do momento que o sistema se torne complexo, poderemos desacoplá-la em diferentes aplicações.
 
 ### Criando ambiente de desenvolvimento, projeto e nossa app:
 
@@ -28,10 +28,10 @@ pip install --upgrade pip
 pip install django jsonfield django-geojson geojson
 
 # criando projeto
-django-admin startproject mapProj .
+django-admin startproject map_proj .
 
 # criando app dentro do projeto
-cd mapProj
+cd map_proj
 python manage.py startapp core
 
 # criando a base de dados inicial
@@ -43,14 +43,14 @@ python manage.py createsuperuser
 
 #### Adicionando os módulos e a app ao projeto
 
-Agora é adicionar ao `mapProj/settings.py`, a app criada e os módulos que usaremos.
+Agora é adicionar ao `map_proj/settings.py`, a app criada e os módulos que usaremos.
 
 ```python
 # setting.py
 INSTALLED_APPS = [
     ...
     'djgeojson',
-    'mapProj.core',
+    'map_proj.core',
 ]
 ```
 
@@ -79,8 +79,6 @@ class Fenomeno(models.Model):
                             verbose_name='Fenomeno mapeado')
     data = models.DateField(verbose_name='Data da observação')
     hora = models.TimeField()
-    # longitude = models.FloatField()
-    # latitude = models.FloatField()
     geom = PointField(blank=True)
 
     def __str__(self):
@@ -113,7 +111,7 @@ Digo isso, pois ao meu `FenomenosForm`, eu sobreescrevo o método `clean()`, que
 # forms.py
 from django.core.exceptions import ValidationError
 from django.forms import ModelForm, FloatField
-from mapProj.core.models import Fenomeno
+from map_proj.core.models import Fenomeno
 from geojson import Point
 
 
@@ -176,8 +174,8 @@ O teste seguinte será relacionado ao formulário e por isso instancio um formul
 from django.test import TestCase
 from geojson import Point
 
-from mapProj.core.models import Fenomeno
-from mapProj.core.forms import FenomenoForm
+from map_proj.core.models import Fenomeno
+from map_proj.core.forms import FenomenoForm
 
 
 class ModelGeomTest(TestCase):
@@ -206,11 +204,15 @@ class FenomenoFormTest(TestCase):
         """"form must be valid"""
         self.assertTrue(self.validation)
 
-    def test_geom(self):
+    def test_geom_coordinates(self):
         """after validating, geom have same values of longitude and latitude"""
         self.assertEqual(self.form.cleaned_data['geom'], Point(
             (self.form.cleaned_data['longitude'],
         self.form.cleaned_data['latitude'])))
+
+    def test_geom_is_valid(self):
+        """geom must be valid"""
+        self.assertTrue(self.form.cleaned_data['geom'].is_valid)
 
 ```
 
@@ -218,7 +220,8 @@ class FenomenoFormTest(TestCase):
 1. No `test_create()` eu testo se existem objetos inseridos no model `Fenomeno`. Logo, testo se o dado criado no `setUp` foi corretamente incorporado no banco de dados.
 1. Na classe `FenomenosFormTest` eu crio uma instância do meu modelForm e realizo três testes:
    * `test_form_is_valid()` estou testando se os dados carregados são condizentes com o informado no model e, pelo fato desse método usar o método `clean()`, posso dizer que estou testando indiretamente a validez do campo `geom`. Caso ele não fosse válido, o form também não seria válido.
-   * Em `test_geom()` testo se após a validação o campo geom foi criado como esperado (como uma instância de Point com os dalores de longitude e latitude).
+   * Em `test_geom_coordinates()` testo se após a validação o campo geom foi criado como esperado (como uma instância de Point com os dalores de longitude e latitude).
+   * O teste `test_geom_is_valid()` serve para garantir que a contrução do campo geom é valido. Ainda que ao testar se o formulário é valido eu estaria implicitamente testando a validez do campo geom, esse teste serve para garantir a criação válida do campo. Afinal, por algum motivo (como por exemplo, refatoração), pode ser que façamos alguma alteração no método `clean()` que mantenha o formulário como válido mas deixe de garantir a validez do campo geom.
 
 A diferença entre as classes de teste criadas está no fato de ao inserir os dados usando o método `create()` - e aconteceria o mesmo se estivesse usando o `save()` -, apenas será validado se o elemento a ser inserido é condizente com o tipo de coluna no banco de dados. Vale deixar claro: Dessa forma, eu não estou validando a consistência do campo `geom`, já que o mesmo, caso seja informado, será salvo com sucesso sempre que represente um `JSON`. 
 
@@ -232,14 +235,15 @@ Para facilitar, vou usar o django-admin. Trata-se de uma aplicação já criada 
 ```python
 #admin.py
 from django.contrib import admin
-from mapProj.core.models import Fenomeno
-from mapProj.core.forms import FenomenoForm
+from map_proj.core.models import Fenomeno
+from map_proj.core.forms import FenomenoForm
 
 class FenomenoAdmin(admin.ModelAdmin):
     model = Fenomeno
     form = FenomenoForm
 
 admin.site.register(Fenomeno, FenomenoAdmin)
+
 ```
 
 ### To be continued...
