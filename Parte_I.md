@@ -1,9 +1,14 @@
 # Criando um sistema para gestão de dados geográficos de forma simples e robusta
 
+Há algum tempo comecei a estudar sobre desenvolvimento de sistema com Python, usando a framework Django. Decidi expor alguns aprendizados em uma serie de artigos. A ideia é que esses textos me ajudem na consolidação do conhecimento e, ao tê-los publicado, ajudar a outros que tenham interesse na área.
+
+Aproveito para deixar meu agradecimento ao Cuducos que, tanto neste artigo, como em todos meus estudos tem sido um grande mentor. Vamos ao que interessa:
+
 Por simples, entende-se: 
 * Um sistema sem a necessidade da instalação e configuração de base de dados PostgreSQL/GIS, Geoserver, etc;
 * Um sistema clássico tipo *Create*, *Retrieve*, *Update*, *Delete* (CRUD) para dados geográficos;
-* Um sistema que não demande operações e consultas espaciais, mas que garanta a qualidade dos dados geográficos;
+* Um sistema que não demande operações e consultas espaciais;
+* Mas um sistema que garanta a qualidade na gestão dos dados geográficos;
 
 ### Visão geral da proposta:
 Vamos criar um ambiente virtual Python e instalar a framework Django, para criar o sistema, assim como alguns módulos como [`jsonfield`](https://pypi.org/project/jsonfield/), que nos vai habilitar a criação de campos `JSON` em nossa base de dados; [`django-geojson`](https://pypi.org/project/django-geojson/), que depende do `jsonfield` e será responsável por habilitar instâncias de dados geográficos, baseando-se em `JSON`; [`geojson`](https://pypi.org/project/geojson/), que possui todas as regras *básicas* de validação de dados geográficos, usando a estrutura homônima, [`geojson`](https://geojson.org/).
