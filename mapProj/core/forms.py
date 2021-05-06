@@ -1,22 +1,25 @@
 from django.core.exceptions import ValidationError
-from django.forms import ModelForm, HiddenInput
+from django.forms import ModelForm, HiddenInput, FloatField
 from mapProj.core.models import Fenomenos
 from geojson import Point
 
 
 class FenomenosForm(ModelForm):
+    longitude = FloatField()
+    latitude = FloatField()
     class Meta:
         model = Fenomenos
-        fields = '__all__'
-        widgets = {
-            'geom': HiddenInput(),
-        }
+        fields = ('nome', 'data', 'hora', 'latitude', 'longitude')
+        # widgets = {
+        #     'geom': HiddenInput(),
+        # }
 
     def clean(self):
         cleaned_data = super().clean()
         lon = cleaned_data.get('longitude')
         lat = cleaned_data.get('latitude')
         cleaned_data['geom'] = Point((lon, lat))
+
         if not cleaned_data['geom'].is_valid:
-            raise ValidationError('Deu ruim')
+            raise ValidationError('Geometria inválida')
         return cleaned_data
