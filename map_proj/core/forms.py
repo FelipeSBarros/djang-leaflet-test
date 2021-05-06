@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.forms import ModelForm, FloatField
-from mapProj.core.models import Fenomeno
+from map_proj.core.models import Fenomeno
 from geojson import Point
 
 

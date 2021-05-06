@@ -1,6 +1,6 @@
 from django.contrib import admin
-from mapProj.core.models import Fenomeno
-from mapProj.core.forms import FenomenoForm
+from map_proj.core.models import Fenomeno
+from map_proj.core.forms import FenomenoForm
 
 class FenomenoAdmin(admin.ModelAdmin):
     model = Fenomeno

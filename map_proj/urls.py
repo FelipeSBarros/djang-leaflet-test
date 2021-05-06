@@ -1,4 +1,4 @@
-"""mapProj URL Configuration
+"""map_proj URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.1/topics/http/urls/
@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.urls import path
 from djgeojson.views import GeoJSONLayerView
 
-# from mapProj.core.models import FloraOccurrence
+# from map_proj.core.models import FloraOccurrence
 
 urlpatterns = [
     path('admin/', admin.site.urls),
