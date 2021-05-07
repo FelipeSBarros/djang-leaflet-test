@@ -10,3 +10,6 @@ MEDIA_ROOT = BASE_DIR
 pip install geojson
 ```
 [geojson](https://pypi.org/project/geojson/)
+
+* add django-leaflet;
+* add validadores de lat/lon;
