@@ -23,7 +23,7 @@ class FenomenoFormTest(TestCase):
             'nome': 'Teste',
             'data': '2020-01-01',
             'hora': '09:12:12',
-            'longitude': -45,
+            'longitude': -42,
             'latitude': -22})
         self.validation = self.form.is_valid()
 
@@ -40,3 +40,37 @@ class FenomenoFormTest(TestCase):
     def test_geom_is_valid(self):
         """geom must be valid"""
         self.assertTrue(self.form.cleaned_data['geom'].is_valid)
+
+class FenomenoFormValidatorsTest(TestCase):
+
+    def update_values(self, **kwargs):
+        validForm = {  # valid form
+            'nome': 'Teste',
+            'data': '2020-01-01',
+            'hora': '09:12:12',
+            'longitude': -42,
+            'latitude': -21}
+
+        finalData = dict(validForm, **kwargs)
+        form = FenomenoForm(finalData)
+        return form
+
+    def test_max_longitude(self):
+        form = self.update_values(longitude='-45')
+        form.is_valid()
+        self.assertEqual(form.errors["longitude"][0], 'Coordenada longitude fora do contexto do estado do Rio de Janeiro')
+
+    def test_min_longitude(self):
+        form = self.update_values(longitude='-40')
+        form.is_valid()
+        self.assertEqual(form.errors["longitude"][0], 'Coordenada longitude fora do contexto do estado do Rio de Janeiro')
+
+    def test_max_latitude(self):
+        form = self.update_values(latitude='-24')
+        form.is_valid()
+        self.assertEqual(form.errors["latitude"][0], 'Coordenada latitude fora do contexto do estado do Rio de Janeiro')
+
+    def test_min_latitude(self):
+        form = self.update_values(latitude='-19')
+        form.is_valid()
+        self.assertEqual(form.errors["latitude"][0], 'Coordenada latitude fora do contexto do estado do Rio de Janeiro')
