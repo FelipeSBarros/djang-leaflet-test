@@ -1,8 +1,10 @@
 from django.core.exceptions import ValidationError
 from django.forms import ModelForm, FloatField, HiddenInput
-from map_proj.core.models import Fenomeno
 from geojson import Point
+
+from map_proj.core.models import Fenomeno
 from map_proj.core.validators import validate_longitude, validate_latitude
+
 
 class FenomenoForm(ModelForm):
     longitude = FloatField(validators=[validate_longitude])
@@ -10,6 +12,7 @@ class FenomenoForm(ModelForm):
     class Meta:
         model = Fenomeno
         fields = ('nome', 'data', 'hora', 'latitude', 'longitude')
+        widgets = {'geom': HiddenInput()}
 
     def clean(self):
         cleaned_data = super().clean()

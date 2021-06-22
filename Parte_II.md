@@ -127,7 +127,8 @@ Ou seja, o `forms` após ser validado deveria conter um atributo `errors` tendo 
 
 ## Criando e usando validadores:
 
-Para superá-los, criamos, enfim, os validadores:
+Para superá-los criamos, enfim, os validadores em um arquivo `validators.py`:
+
 ```python
 from django.core.exceptions import ValidationError
 
@@ -136,24 +137,31 @@ def validate_longitude(lon):
     if lon < -44.887212 or lon > -40.95975:
         raise ValidationError("Coordenada longitude fora do contexto do estado do Rio de Janeiro", "erro longitude")
 
+
 def validate_latitude(lat):
     if lat < -23.366868 or lat > -20.764962:
         raise ValidationError("Coordenada latitude fora do contexto do estado do Rio de Janeiro", "erro latitude")
 ```
-Com esses validadores estou garantindo que ambos latitude e longitude estajm na área de interesse e caso contrário, retorno um erro informando ao usuário.
 
-E é preciso adicioná-los ao forms para que sejam usados:
+Com esses validadores estou garantindo que ambos latitude e longitude estejam na área de interesse e, caso contrário, retorno um erro informando ao usuário.
+
+E é preciso adicioná-los ao `forms.py` para que sejam usados:
 
 ```python
+from map_proj.core.validators import validate_longitude, validate_latitude
+
 class FenomenoForm(ModelForm):
     longitude = FloatField(validators=[validate_longitude])
     latitude = FloatField(validators=[validate_latitude])
 ...
 ```
-No desenvlvimento dessa solução, tive alguns incovenientes pois ao informar uma latitude ou longitude que não passase pela validação (justamente para confirmar que isso aconteceria e o usuário receberia a mensagem de erro), passei a ter um erro no método clean, já que é nele que o campo `geom` recebe os valores de `longitude` e `latitude` formando uma classe `geojson`. E ao não ter um desses valores, acabei tendo dois erros: o de validação do campo e o de validação do campo `geom`.
-Para evitar isso, fiz com que o campo `geom` só seja criado e validado no método clea, quando ambos valores (longitude e latitude) existam. Ou seja, tenham passado pelos validadores.
+
+No desenvolvimento dessa solução percebi pelos testes criados que, ao informar uma latitude ou longitude que não passe pela validação, a criação do campo `geom` se tornava inválido (lembre-se que é no método clean do form que o campo `geom` recebe os valores de `longitude` e `latitude` formando uma classe `geojson` para, logo em seguida ser validado) por não receber um desses valores, gerando dois erros: o de validação do campo e o de validação do campo `geom`.
+
+Para evitar isso, alterei o método clean de for a garantir que o campo `geom` só seja criado e validado, quando ambos valores (`longitude` e `latitude`) existam. Ou seja, tenham passado pelos validadores sem erro.
 
 ```python
+#forms.py
     def clean(self):
         cleaned_data = super().clean()
         lon = cleaned_data.get('longitude')
@@ -170,17 +178,75 @@ Para evitar isso, fiz com que o campo `geom` só seja criado e validado no méto
 ```
 
 ## View GeoJSONLayerView
-[sobre serializador](https://django-portuguese.readthedocs.io/en/1.0/topics/serialization.html)
 
-[GeoJSONLayerView](https://django-geojson.readthedocs.io/en/latest/views.html#geojson-layer-view)
+A seriação ou, em inglês `serialization`, é o processo/mecanismo de tradução dos objetos armazenados na base de dados em outros formatos, em geral baseado em texto (por exemplo, XML ou Json), para serem enviados ou consumidos no processo de `request/response`. 
+
+No nosso caso isso será importante pois para apresentar os dados armazenados pelo projeto em um *webmap*, precisaremos servi-los no formato `geojson`. Mas não precisaremos nos preocupar com praticamente nada disso. O `django-geojson` cuida de tudo ao oferecer-nos a classe [`GeoJSONLayerView`](https://django-geojson.readthedocs.io/en/latest/views.html#geojson-layer-view), que é um [*mixin*](https://docs.djangoproject.com/en/3.2/topics/class-based-views/mixins/) que, em base ao modelo informado de nosso projeto, serializa os dados em `geojson` usnado a classe `GeoJSONSerializer` e os serve em uma *view*. É bastante coisa para apenas algumas linhas de código.
+
+Para entender essa sriação, seja o exemplo. Ao acessar os dados do banco de dados, temos uma `QuerySet`. Ao serializá-la com o `GeoJSONSerializer`, temos como retorno uma [`FeatureCollection`](https://datatracker.ietf.org/doc/html/rfc7946#section-3.3) já em formato `geojson`. Veja:
+
+```python
+>>> Fenomeno.objects.all()
+<QuerySet [<Fenomeno: fenomeno_teste>]>
+
+>>> from djgeojson.serializers import Serializer as GeoJSONSerializer
+>>> GeoJSONSerializer().serialize(Fenomeno.objects.all(), use_natural_keys=True, with_modelname=False)
+'{"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"nome": "teste", "data": "2021-06-22", "hora": "02:07:57"}, "id": 3, "geometry": {"type": "Point", "coordinates": [-42.0, -22.0]}}], "crs": {"type": "link", "properties": {"href": "http://spatialreference.org/ref/epsg/4326/", "type": "proj4"}}}'
+```
+
+Mais sobre [seriação](https://django-portuguese.readthedocs.io/en/1.0/topics/serialization.html) ou [aqui](https://docs.djangoproject.com/en/3.2/ref/contrib/gis/serializers/), com outro exemplo relacionado a dado geográfico.
+
+Então, ciente de toda a mágica por trás do `GeoJSONLayerView`, vamos criar na `views.py` uma classe nova, herdando da classe `GeoJSONLayerView`. Ela será a view responsável por nos servir os dados do projeto já em `geojson` que serão consumidos em um *webmap*.
+O leal dessa classe é que podemos informar a propriedades do modelo em questão. Usaremos essas propriedades para apresentar algumas informações no popup do mapa que vamos criar. Um último detalhe é que, como estamos usando um `Class Based-View`, ao final a convertemos em view.
+
+```python
+# views.py
+from djgeojson.views import GeoJSONLayerView
+
+from map_proj.core.models import Fenomeno
+
+
+class FenomenoGeoJson(GeoJSONLayerView):
+    model = Fenomeno
+    properties = ('popup_content',)
+
+    def get_queryset(self):
+        context = Fenomeno.objects.all()
+        return context
+
+fenomeno_geojson = FenomenoGeoJson.as_view()
+```
+
+### Adicionando propriedade para *popup*  
+
+```python
+#models.py
+...
+    @property
+    def popup_content(self):
+        popup = f'<strong><span>Nome: </span>{self.nome}</strong></p>'
+        return popup
+```
+
+Como precisaremos acessar essa view, precisamos incorporá-la na nossa `urls.py`:
 
 ```python
 # urls.py
-from djgeojson.views import GeoJSONLayerView
-...
-url(r'^data.geojson$', GeoJSONLayerView.as_view(model=MushroomSpot), name='data'),
-```
+from django.contrib import admin
+from django.urls import path
 
+from map_proj.core.views import fenomeno_geojson
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('geojson/', fenomeno_geojson, name='geojson'),
+]
+
+```
+Após isso, já poderemos acessar nossos dados pela *url* `http://127.0.0.1:8000/geojson/` e teremos nossos dados servidos em geojson:
+```
+{"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"popup_content": "<strong><span>Nome: </span>teste</strong></p>", "model": "core.fenomeno"}, "id": 3, "geometry": {"type": "Point", "coordinates": [-42.0, -22.0]}}], "crs": {"type": "name", "properties": {"name": "EPSG:4326"}}}
+```
 ```python
 # Leaflet JS
 var layer = L.geoJson();
@@ -214,3 +280,5 @@ MEDIA_ROOT = BASE_DIR
 ```
 
 
+## Heroku
+como funciona: https://dzone.com/articles/how-heroku-works

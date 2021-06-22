@@ -13,3 +13,8 @@ class Fenomeno(models.Model):
 
     def __str__(self):
         return self.nome
+
+    @property
+    def popup_content(self):
+        popup = f'<strong><span>Nome: </span>{self.nome}</strong></p>'
+        return popup
