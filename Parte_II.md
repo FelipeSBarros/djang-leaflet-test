@@ -7,9 +7,9 @@ Na [primeira publicação](https://www.linkedin.com/pulse/criando-um-sistema-par
 
 Agora é hora de evoluir e expandir um pouco o sistema criado. Nessa publicação vamos:  
 * criar validadores de longitude e latitude para poder restringir a inserção de dados a uma determinada região;  
-* adicionar uma propriedade ao model que será usada no *popup* do mapa em `leaflet`;  
-* instalar e usar o [`django-leaflet`](https://django-leaflet.readthedocs.io/en/latest/) para poder usar o `widget` além de outras funcionalidades;  
-* criar uma view para visualizar os dados em mapas usando `GeoJSONLayerView`, do [`django-geojson`](https://django-geojson.readthedocs.io/en/latest/);  
+* adicionar uma propriedade ao model que será usada no *popup* do mapa em `leaflet`;
+* criar uma view para visualizar os dados em mapas usando `GeoJSONLayerView`, do [`django-geojson`](https://django-geojson.readthedocs.io/en/latest/);
+* instalar e usar o [`django-leaflet`](https://django-leaflet.readthedocs.io/en/latest/) para poder usar o `widget` além de outras funcionalidades;
 * Tudo isso testando se tais funcionalidades ou propriedades estão com o comportamento esperado;  
 * fazer deploy no [heroku](heroku.com)(?)  
     * Um argumento para fazê-lo é levar a implementação até o final.  
@@ -20,11 +20,11 @@ Vamos lá!
 ## criando validadores de longitude e latitude  
 
 ### Sobre os validadores:  
-Os validadores ([`validators`](https://docs.djangoproject.com/en/3.2/ref/forms/validation/#validators) ) fazem parte do sistema de validação de formulários e de campos do Django. Ao criarmos campos de uma determinada classe em nosso model, como por exemplo `integer`, o django cuidará automaticamente da validação do valor passado a este campo pelo formulário, retornando um erro quando o usuário ingressar um valor de texto no campo em questão. O interessante é que além dos validadores já implementados para cada classe, podemos criar outros, conforme nossa necessidade.
+Os validadores ([`validators`](https://docs.djangoproject.com/en/3.2/ref/forms/validation/#validators) ) fazem parte do sistema de validação de formulários e de campos do Django. Ao criarmos campos de uma determinada classe no nosso model, como por exemplo `integer`, o django cuidará automaticamente da validação do valor passado a este campo pelo formulário, retornando um erro quando o usuário ingressar um valor de texto no campo em questão. O interessante é que além dos validadores já implementados para cada classe, podemos criar outros, conforme a nossa necessidade.
 
 > Por que necesitamos um validador de `latitude` e `longitude`?
 
-Como estou explorando o desenvolvimento de um sistema de gestão de dados goegráficos com recursos limitados, ou seja, sem uma infraestrutura de operações e consultas espaciais, não poderei consultar se o par de coordenadas inserido pelo usuário está contido nos limites de um determinado estado (uma operação clássica com dados geográficos). E não ter essa possibilidade de validação poderá colocar em risco a qualidade do dado inserido.
+Como estou explorando o desenvolvimento de um sistema de gestão de dados goegráficos com recursos limitados, ou seja, sem uma infraestrutura de operações e consultas espaciais, não poderei consultar se o par de coordenadas inserido pelo usuário está contido nos limites de um determinado estado (uma operação clássica com dados geográficos). Não ter essa possibilidade de validação poderá colocar em risco a qualidade do dado inserido.
 
 E como não se abre mão quando a questão é qualidade, uma saída será a criação de validadores personalizados para os campos de `latitude` e `logitude`, garantindo que esses possuem valores condizentes à nossa área de interesse.
 
@@ -33,9 +33,10 @@ os `validators` são funções que recebem um valor, apenas, o valor inserido pe
 
 Então, criarei validadores dos campos de `latitude` e `longitude` para sempre que entrarem com valores que não contemplem a área do estado do Rio de Janeiro, um `ValidationError` será retornado.  
 
-> :warning: Essa não é uma solução ótima já que, dessa forma, estaremos considerando o bounding box do estado em questão, e com isso haverão algumas áreas onde as coordenadas serão válidas, ainda que não estejam internas ao território estadual. Ainda assim, acredito que seja uma solução boa suficiente para alguns casos, principalmente por não depender de toda infraestrutura de GIS.
+> :warning: Essa não é uma solução ótima já que, dessa forma, estamos considerando o *bounding box* do estado em questão, e com isso haverá áreas onde as coordenadas serão válidas, ainda que não estejam internas ao território estadual. Ainda assim, acredito que seja uma solução boa suficiente para alguns casos, principalmente por não depender de toda infraestrutura de GIS.
 
-**O que é um `bouding box`?**  
+**O que é um `bouding box`?**
+
 Bounding box poderia ser traduzido por "retângulo envolvente" do estado, ou de uma feição espacial. Na imagem a baixo, vemos o território do estado do Rio de Janeiro e o retângulo envolvente que limita as suas coordenadas máximas e mínimas de longitude e latitude.  
 
 ![](./map_proj/img/RJ_bbox.png)
@@ -49,7 +50,8 @@ Para isso, criarei uma função chamada `update_values` que receberá um `**kwar
 
 Logo em seguida, crio um objeto chamado `finalData` que será o dicionário `validForm` criado anteriormente, mas com os parâmetros nomeados passados como `**kwargs` da função. Esse dicionário com os valores atualizados serão usadas para instanciar o meu `ModelForm` que será retornado ao fim da execussão.
 
-Eu fiz isso para poder ir, a cada teste, atualizando apenas os campos que quero simular valores a serem validados, sem ter que instanciar è passar sempre os valores do `ModelForm`.
+Fiz isso para poder ir, a cada teste, atualizando apenas os campos que quero simular valores a serem validados, sem ter que instanciar è passar sempre os valores do `ModelForm`.
+
 ```python
 class FenomenoFormValidatorsTest(TestCase):
     def update_values(self, **kwargs):
@@ -64,7 +66,7 @@ class FenomenoFormValidatorsTest(TestCase):
         form = FenomenoForm(finalData)
         return form
 ```
-Assim, eu posso criar diferentes métodos de test case, usando o método criando anteriormente para alterar o valor iniciar a um que deva ser considerado inválido pelo validador.
+Assim, eu posso criar diferentes métodos de *Test Case*, usando o método criando anteriormente para alterar o valor iniciar a um que deva ser considerado inválido pelo validador.
 
 Nos método uso o `assertEqual` para confirmar que o o texto do `AssertError` é o que esperamos. Para saber sobre outros [`assertions`](https://docs.python.org/3/library/unittest.html#unittest.TestCase.debug)
 
@@ -123,13 +125,12 @@ Destroying test database for alias 'default'...
 
 Ou seja, o `forms` após ser validado deveria conter um atributo `errors` tendo como chave o nome do campo que apresentou dados inválidos. Como não temos os validadores criados, ainda, os campos `latitude` não foi encontrado pelo teste executado.
 
-~~Como podemos definir vários validadores para um mesmo campo, o `value` esperado é uma lista. O erro retorna exatamente a inexistencia de uma chave com o nome latitude, indicando que não houve qualquer problema de validação.~~
-
 ## Criando e usando validadores:
 
 Para superá-los criamos, enfim, os validadores em um arquivo `validators.py`:
 
 ```python
+# validators.py
 from django.core.exceptions import ValidationError
 
 
@@ -148,6 +149,7 @@ Com esses validadores estou garantindo que ambos latitude e longitude estejam na
 E é preciso adicioná-los ao `forms.py` para que sejam usados:
 
 ```python
+# forms.py
 from map_proj.core.validators import validate_longitude, validate_latitude
 
 class FenomenoForm(ModelForm):
@@ -183,11 +185,14 @@ A seriação ou, em inglês `serialization`, é o processo/mecanismo de traduç�
 
 No nosso caso isso será importante pois para apresentar os dados armazenados pelo projeto em um *webmap*, precisaremos servi-los no formato `geojson`. Mas não precisaremos nos preocupar com praticamente nada disso. O `django-geojson` cuida de tudo ao oferecer-nos a classe [`GeoJSONLayerView`](https://django-geojson.readthedocs.io/en/latest/views.html#geojson-layer-view), que é um [*mixin*](https://docs.djangoproject.com/en/3.2/topics/class-based-views/mixins/) que, em base ao modelo informado de nosso projeto, serializa os dados em `geojson` usnado a classe `GeoJSONSerializer` e os serve em uma *view*. É bastante coisa para apenas algumas linhas de código.
 
-Para entender essa sriação, seja o exemplo. Ao acessar os dados do banco de dados, temos uma `QuerySet`. Ao serializá-la com o `GeoJSONSerializer`, temos como retorno uma [`FeatureCollection`](https://datatracker.ietf.org/doc/html/rfc7946#section-3.3) já em formato `geojson`. Veja:
+Para entender essa sriação, seja o exemplo abaixo. Ao acessar os dados do banco de dados, temos uma `QuerySet`. Ao acessar a geometria de um objeto do bando de dados, temos um `geojson`. Ao serializá-la com o `GeoJSONSerializer`, temos como retorno uma [`FeatureCollection`](https://datatracker.ietf.org/doc/html/rfc7946#section-3.3) já em formato `geojson`, tendo como propriedades os campos do `model`:
 
 ```python
 >>> Fenomeno.objects.all()
 <QuerySet [<Fenomeno: fenomeno_teste>]>
+
+>>> Fenomeno.objects.get(pk=3).geom
+{'type': 'Point', 'coordinates': [-42.0, -22.0]}
 
 >>> from djgeojson.serializers import Serializer as GeoJSONSerializer
 >>> GeoJSONSerializer().serialize(Fenomeno.objects.all(), use_natural_keys=True, with_modelname=False)
@@ -196,8 +201,42 @@ Para entender essa sriação, seja o exemplo. Ao acessar os dados do banco de da
 
 Mais sobre [seriação](https://django-portuguese.readthedocs.io/en/1.0/topics/serialization.html) ou [aqui](https://docs.djangoproject.com/en/3.2/ref/contrib/gis/serializers/), com outro exemplo relacionado a dado geográfico.
 
-Então, ciente de toda a mágica por trás do `GeoJSONLayerView`, vamos criar na `views.py` uma classe nova, herdando da classe `GeoJSONLayerView`. Ela será a view responsável por nos servir os dados do projeto já em `geojson` que serão consumidos em um *webmap*.
-O leal dessa classe é que podemos informar a propriedades do modelo em questão. Usaremos essas propriedades para apresentar algumas informações no popup do mapa que vamos criar. Um último detalhe é que, como estamos usando um `Class Based-View`, ao final a convertemos em view.
+Então, ciente de toda a mágica por trás do `GeoJSONLayerView` e o seu resultado, vamos criar os testes para essa `view`.
+
+### Criando os testes da `View`
+
+Como estou testando justamente uma `view` que serializa o objeto do meu odelo em formado geojson e, sabendo que o `geom` só é criado ao usarmos o `ModelForm`, crio uma instância do mesmo, com valores válidos e o salva ao banco (do teste).
+Em seguida, teste se o estatus code de um request (metodo "get") ao path que pretendo usar para essa views ("/geojson/"), retorna 200, código que indica sucesso. [Veja mais sobre os códigos aqui](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes).
+No último teste, cifirmo se a resposta recebida é a esperada, considerando os dados registrados no formulário do `setUp`.
+
+```python
+class FenomenoGeoJsonTest(TestCase):
+    def setUp(self):
+        self.form = FenomenoForm({
+            'nome': 'Teste',
+            'data': '2020-01-01',
+            'hora': '09:12:12',
+            'longitude': -42,
+            'latitude': -22})
+        self.form.save()
+
+    def teste_geojson_status_code(self):
+        self.resp = self.client.get('/geojson/')
+        self.assertEqual(200, self.resp.status_code)
+
+    def teste_geojson_FeatureCollection(self):
+        self.resp = self.client.get(r('geojson'))
+        self.assertEqual(self.resp.json(), {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"popup_content": "<strong><span>Nome: </span>Teste</strong></p>", "model": "core.fenomeno"}, "id": 1, "geometry": {"type": "Point", "coordinates": [-42.0, -22.0]}}], "crs": {"type": "name", "properties": {"name": "EPSG:4326"}}})
+
+```
+
+Obviamente, ambos testes falharão, pois ainda não criamos a view, nem a designamos a um *path* do nosso sistema.
+
+Para fazê-los passar, vamos primeiro criar a view. Em `views.py` uma classe nova, herdando da classe `GeoJSONLayerView`. Ela será a view responsável por nos servir os dados do projeto já em `geojson` que serão consumidos em um *webmap*.
+
+O interessante é que também podemos informar o nome da propriedade do modelo em questão, a partir da qual será usada para apresentar informações no *popup* do mapa.
+
+Um último detalhe é que, como estamos usando um `Class Based-View`, ao final a convertemos em view, com o método `as_view()`.
 
 ```python
 # views.py
@@ -218,6 +257,8 @@ fenomeno_geojson = FenomenoGeoJson.as_view()
 ```
 
 ### Adicionando propriedade para *popup*  
+
+Por agora, adicionarei apenas o campo `nome` à propriedade do meu modelo. Mais à frente podemos incrementar. Mas por agora, só isso.
 
 ```python
 #models.py
@@ -243,10 +284,34 @@ urlpatterns = [
 ]
 
 ```
-Após isso, já poderemos acessar nossos dados pela *url* `http://127.0.0.1:8000/geojson/` e teremos nossos dados servidos em geojson:
+
+Com isso teremos os nossos ultimos testes passando. Se ainda assim  você tiver curiosidade, pode acessar os dados pela *url* `http://127.0.0.1:8000/geojson/` e receberá os dados servidos em `geojson`:
+
 ```
 {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"popup_content": "<strong><span>Nome: </span>teste</strong></p>", "model": "core.fenomeno"}, "id": 3, "geometry": {"type": "Point", "coordinates": [-42.0, -22.0]}}], "crs": {"type": "name", "properties": {"name": "EPSG:4326"}}}
 ```
+
+
+# Django-leaflet
+
+Para saber mais sobre o `django-leaflet`, recomendo dar uma olhada na pagina [pypi](https://pypi.org/project/django-leaflet/) e na [documentação](https://django-leaflet.readthedocs.io/en/latest/installation.html). Mas, como eu estive me perguntando "por quê ter e usar um pacote `django-leaflet` se eu posso usar o [`leaflet`](https://leafletjs.com/) "puro", já que se trata de uma biblioteca JavaScript?", deixo alguns puntos que s proprios desenvolvedores apresentam na documentação:
+
+> Main purposes of having a python package for the Leaflet Javascript library :
+>  - Install and enjoy ;
+>  -  Do not embed Leaflet assets in every Django project ;
+>  -  Enjoy geometry edition with Leaflet form widget ;
+>  -  Control apparence and settings of maps from Django settings (e.g. at deployment) ;
+>  -  Reuse Leaflet map initialization code (e.g. local projections) ;
+
+E por último, mas não menos importante:
+> note:	django-leaflet is compatible with django-geojson fields, which allow handling geographic data without spatial database.
+
+Bem legal! ele criaram um pacote já compatível com o pacote `django-geojson`, que nos permite simular campos geomgráficos sem a neccessidade de toda a infraestrutura de uma base de dados de SIG (PostGIS, por exemplo).
+
+Porém, há que ter atenção ao seguinte detalhe:
+> #### Dependencies
+> django-leaflet requires the GDAL library installed on the system. Installation instructions are platform-specific.
+
 ```python
 # Leaflet JS
 var layer = L.geoJson();

@@ -9,9 +9,10 @@ from map_proj.core.validators import validate_longitude, validate_latitude
 class FenomenoForm(ModelForm):
     longitude = FloatField(validators=[validate_longitude])
     latitude = FloatField(validators=[validate_latitude])
+
     class Meta:
         model = Fenomeno
-        fields = ('nome', 'data', 'hora', 'latitude', 'longitude')
+        fields = ('nome', 'data', 'hora', 'latitude', 'longitude', 'geom')
         widgets = {'geom': HiddenInput()}
 
     def clean(self):

@@ -1,8 +1,9 @@
+from django.shortcuts import resolve_url as r
 from django.test import TestCase
 from geojson import Point
 
-from map_proj.core.models import Fenomeno
 from map_proj.core.forms import FenomenoForm
+from map_proj.core.models import Fenomeno
 
 
 class ModelGeomTest(TestCase):
@@ -74,3 +75,22 @@ class FenomenoFormValidatorsTest(TestCase):
         form = self.update_values(latitude='-19')
         form.is_valid()
         self.assertEqual(form.errors["latitude"][0], 'Coordenada latitude fora do contexto do estado do Rio de Janeiro')
+
+
+class FenomenoGeoJsonTest(TestCase):
+    def setUp(self):
+        self.form = FenomenoForm({
+            'nome': 'Teste',
+            'data': '2020-01-01',
+            'hora': '09:12:12',
+            'longitude': -42,
+            'latitude': -22})
+        self.form.save()
+
+    def teste_geojson_status_code(self):
+        self.resp = self.client.get(r('geojson'))
+        self.assertEqual(200, self.resp.status_code)
+
+    def teste_geojson_FeatureCollection(self):
+        self.resp = self.client.get('/geojson/')
+        self.assertEqual(self.resp.json(), {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"popup_content": "<strong><span>Nome: </span>Teste</strong></p>", "model": "core.fenomeno"}, "id": 1, "geometry": {"type": "Point", "coordinates": [-42.0, -22.0]}}], "crs": {"type": "name", "properties": {"name": "EPSG:4326"}}})
