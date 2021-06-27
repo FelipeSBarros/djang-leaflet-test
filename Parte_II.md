@@ -199,9 +199,9 @@ Finalmente, a classe `Meta` do `forms.py` ficou da seguinte forma:
 
 A seriação ou, em inglês `serialization`, é o processo/mecanismo de tradução dos objetos armazenados na base de dados em outros formatos, em geral baseado em texto (por exemplo, XML ou Json), para serem enviados ou consumidos no processo de `request/response`. 
 
-No nosso caso isso será importante pois para apresentar os dados armazenados pelo projeto em um *webmap*, precisaremos servi-los no formato `geojson`. Mas não precisaremos nos preocupar com praticamente nada disso. O `django-geojson` cuida de tudo ao oferecer-nos a classe [`GeoJSONLayerView`](https://django-geojson.readthedocs.io/en/latest/views.html#geojson-layer-view), que é um [*mixin*](https://docs.djangoproject.com/en/3.2/topics/class-based-views/mixins/) que, em base ao modelo informado de nosso projeto, serializa os dados em `geojson` usnado a classe `GeoJSONSerializer` e os serve em uma *view*. É bastante coisa para apenas algumas linhas de código.
+No nosso caso isso será importante pois para apresentar os dados armazenados pelo projeto em um *webmap*, precisaremos servi-los no formato `geojson`. Mas não precisaremos nos preocupar com praticamente nada disso pois o `django-geojson` cuida de tudo ao oferecer-nos a classe [`GeoJSONLayerView`](https://django-geojson.readthedocs.io/en/latest/views.html#geojson-layer-view), que é um [*mixin*](https://docs.djangoproject.com/en/3.2/topics/class-based-views/mixins/) que, em base ao modelo informado do nosso projeto, serializa os dados em `geojson` usando a classe `GeoJSONSerializer` e os serve em uma *view*. É bastante coisa para apenas algumas linhas de código.
 
-Para entender essa sriação, seja o exemplo abaixo. Ao acessar os dados do banco de dados, temos uma `QuerySet`. Ao acessar a geometria de um objeto do bando de dados, temos um `geojson`. Ao serializá-la com o `GeoJSONSerializer`, temos como retorno uma [`FeatureCollection`](https://datatracker.ietf.org/doc/html/rfc7946#section-3.3) já em formato `geojson`, tendo como propriedades os campos do `model`:
+Para entender essa sriação, veja o exemplo abaixo. Ao acessar os dados do banco de dados, temos uma `QuerySet`. Ao acessar a geometria de um objeto do bando de dados, temos um `geojson`. Ao serializá-lo com o `GeoJSONSerializer`, temos como retorno uma [`FeatureCollection`](https://datatracker.ietf.org/doc/html/rfc7946#section-3.3) já em formato `geojson`, tendo como propriedades os campos do `model`:
 
 ```python
 >>> Fenomeno.objects.all()
@@ -215,17 +215,20 @@ Para entender essa sriação, seja o exemplo abaixo. Ao acessar os dados do banc
 '{"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"nome": "teste", "data": "2021-06-22", "hora": "02:07:57"}, "id": 3, "geometry": {"type": "Point", "coordinates": [-42.0, -22.0]}}], "crs": {"type": "link", "properties": {"href": "http://spatialreference.org/ref/epsg/4326/", "type": "proj4"}}}'
 ```
 
-Mais sobre [seriação](https://django-portuguese.readthedocs.io/en/1.0/topics/serialization.html) ou [aqui](https://docs.djangoproject.com/en/3.2/ref/contrib/gis/serializers/), com outro exemplo relacionado a dado geográfico.
+Mais sobre seriação pode ser encontrado [aqui](https://django-portuguese.readthedocs.io/en/1.0/topics/serialization.html) ou [aqui, com outro exemplo relacionado a dado geográfico usando o GeoDjango](https://docs.djangoproject.com/en/3.2/ref/contrib/gis/serializers/).
 
 Então, ciente de toda a mágica por trás do `GeoJSONLayerView` e o seu resultado, vamos criar os testes para essa `view`.
 
 ### Criando os testes da `View`
 
-Como estou testando justamente uma `view` que serializa o objeto do meu modelo em formado geojson e, sabendo que o `geom` só é criado ao usarmos o `ModelForm`, crio uma instância do mesmo, com valores válidos e o salva ao banco (do teste).
-Em seguida, teste se o estatus code de um request (metodo "get") ao path que pretendo usar para essa views ("/geojson/"), retorna 200, código que indica sucesso. [Veja mais sobre os códigos aqui](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes).
-No último teste, cifirmo se a resposta recebida é a esperada, considerando os dados registrados no formulário do `setUp`.
+Como estou testando justamente uma `view` que serializa o objeto do meu modelo em formado `geojson` e, sabendo que o `geom` só é criado ao usarmos o `ModelForm`, no `tests.py` vou uma instância do `ModelForm`, em uma nova classe de `TestCase`. Essa instância com valores válidos são, em seguida, salvo no banco de dados (do teste).
+
+Primeiro testo se o *status code* do request (método "get") ao *path* que pretendo usar para essa views (no caso, "/geojson/"), retorna 200, código que indica sucesso. [Veja mais sobre os códigos aqui](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes).
+
+No teste seguinte, confirmo se a resposta recebida é a esperada, considerando os dados registrados no `ModelForm` do `setUp`.
 
 ```python
+# testes.py
 class FenomenoGeoJsonTest(TestCase):
     def setUp(self):
         self.form = FenomenoForm({
@@ -250,7 +253,7 @@ Obviamente, ambos testes falharão, pois ainda não criamos a view, nem a design
 
 Para fazê-los passar, vamos primeiro criar a view. Em `views.py` uma classe nova, herdando da classe `GeoJSONLayerView`. Ela será a view responsável por nos servir os dados do projeto já em `geojson` que serão consumidos em um *webmap*.
 
-Percebam que eu já estou considerando que o `geojson` virá com uma `properties`, a ser criada no model em questão e que terá nome de `popup-content`. Poderiamos adicionar a essa `property` quanta informação acharmos pertinente a ser apresentada no *popup* do mapa. Por agora estou apenas informar o nome do fenômeno mapeado.
+Percebam que eu já estou considerando que o `geojson` virá com uma `properties`, ainda a ser criada no model em questão e que terá nome de `popup-content`. Poderíamos adicionar a essa `property` quantas informaçções acharmos pertinente a ser apresentada no *popup* do mapa. Por agora estou apenas informando o nome do fenômeno mapeado.
 
 Um último detalhe é que, como estamos usando um `Class Based-View`, ao final a convertemos em view, com o método `as_view()`.
 
@@ -274,7 +277,7 @@ fenomeno_geojson = FenomenoGeoJson.as_view()
 
 ### Adicionando propriedade para *popup*  
 
-Por agora, adicionarei apenas o campo `nome` à propriedade do meu modelo. Mais à frente podemos incrementar, adicionando um [`get_absolute_url`](https://docs.djangoproject.com/en/3.2/ref/models/instances/#get-absolute-url) por exemplo, para poder acessar aos detalhes do fenômeno a partir do *popup* do mapa.
+Por agora, adicionarei apenas o campo `nome` do fenômeno à propriedade do meu modelo. Mais à frente podemos incrementar, adicionando um [`get_absolute_url`](https://docs.djangoproject.com/en/3.2/ref/models/instances/#get-absolute-url) por exemplo, para poder acessar aos detalhes do fenômeno a partir do *popup* do mapa.
 
 ```python
 #models.py
@@ -292,11 +295,11 @@ Para poder acessar essa view, precisamos incorporá-la na nossa `urls.py`:
 from django.contrib import admin
 from django.urls import path
 
-from map_proj.core.views import fenomeno_geojson
+from map_proj.core.views import fenomeno_geojson # novo!
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('geojson/', fenomeno_geojson, name='geojson'),
+    path('geojson/', fenomeno_geojson, name='geojson'), # novo!
 ]
 
 ```
@@ -307,10 +310,11 @@ Com isso teremos os nossos últimos testes passando. Se ainda assim você tiver 
 {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"popup_content": "<strong><span>Nome: </span>teste</strong></p>", "model": "core.fenomeno"}, "id": 3, "geometry": {"type": "Point", "coordinates": [-42.0, -22.0]}}], "crs": {"type": "name", "properties": {"name": "EPSG:4326"}}}
 ```
 
+Pronto, já temos um sistema de validação para os campo de longitude e latitude, garantindo que as coordenadas inseridas estão na região de interesse. Também já temos uma `view` nos servindo os dados em formato `geojson`. Vamos ao `leaflet`, entender como montar um *webmap*.
 
-# Django-leaflet
+## Django-leaflet
 
-Para saber mais sobre o `django-leaflet`, recomendo dar uma olhada na pagina [pypi](https://pypi.org/project/django-leaflet/) e na [documentação](https://django-leaflet.readthedocs.io/en/latest/installation.html). Mas, como eu estive me perguntando "por quê ter e usar um pacote `django-leaflet` se eu posso usar o [`leaflet`](https://leafletjs.com/) "puro", já que se trata de uma biblioteca JavaScript?", deixo alguns puntos que s proprios desenvolvedores apresentam na documentação:
+Para saber mais sobre o `django-leaflet`, recomendo dar uma olhada na página [pypi](https://pypi.org/project/django-leaflet/) e na [documentação](https://django-leaflet.readthedocs.io/en/latest/installation.html). Mas, como eu estive me perguntando "por quê ter e usar um pacote `django-leaflet` se eu posso usar o [`leaflet`](https://leafletjs.com/) "puro", já que se trata de uma biblioteca JavaScript?", deixo alguns puntos que os proprios desenvolvedores apresentam na documentação:
 
 > Main purposes of having a python package for the Leaflet Javascript library :
 >  - Install and enjoy ;
@@ -319,14 +323,52 @@ Para saber mais sobre o `django-leaflet`, recomendo dar uma olhada na pagina [py
 >  -  Control apparence and settings of maps from Django settings (e.g. at deployment) ;
 >  -  Reuse Leaflet map initialization code (e.g. local projections) ;
 
-E por último, mas não menos importante:
+E por último, mas não menos importante, um alerta:
 > note:	django-leaflet is compatible with django-geojson fields, which allow handling geographic data without spatial database.
 
-Bem legal! ele criaram um pacote já compatível com o pacote `django-geojson`, que nos permite simular campos geomgráficos sem a neccessidade de toda a infraestrutura de uma base de dados de SIG (PostGIS, por exemplo).
+Bem legal! ele criaram um pacote já compatível com o pacote `django-geojson`, que nos permite simular campos geográficos sem a neccessidade de toda a infraestrutura de uma base de dados de SIG (PostGIS, por exemplo).
 
-Porém, há que ter atenção ao seguinte detalhe:
+Porém, atenção ao seguinte detalhe:
 > #### Dependencies
 > django-leaflet requires the GDAL library installed on the system. Installation instructions are platform-specific.
+
+A instalação do pacote é bem simples. 
+
+```python
+pip install django-leaflet
+```
+
+E após sua instalação, é necessário inluir-lo no settings como *INSTALLED_APPS*. Não esqueça de adicioná-lo ao `requirements.txt`, também.
+
+```python
+# settings.py
+INSTALLED_APPS = [
+    ...
+    'djgeojson',
+    'leaflet', # novo
+    'map_proj.core',
+]
+```
+
+- add templates dir
+- add map.html
+- create path urls.py
+
+```html
+{% load leaflet_tags %}
+
+<head>
+    ...
+    {% leaflet_js %}
+    {% leaflet_css %}
+</head>
+```
+
+Isso já o suficiente para ter um *webmap*, no path indicado no `urls.py`.
+
+![](./map_proj/img/leaflet_1.png)
+
+Falta agora "likar" a view que nos serve o geojson com o mapa em questão, bem como ajustar o mapa como nos seja mais conveniente.
 
 ```python
 # Leaflet JS
@@ -336,30 +378,96 @@ $.getJSON("{% url 'data' %}", function (data) {
     layer.addData(data);
 });
 ```
-```python
-# views.py
-from djgeojson.views import GeoJSONLayerView
 
-class MapLayer(GeoJSONLayerView):
-    # Options
-    precision = 4   # float
-    simplify = 0.5  # generalization
+Adicionando um marker hardcoded:
+
+```html
+{% load leaflet_tags %}
+<script>
+    function map_init_basic (map, options) {
+
+        L.marker([-22, -42]).addTo(map);
+
+    }
+</script>
 
 
-# urls.py
-from .views import MapLayer, MeetingLayer
-...
-url(r'^mushrooms.geojson$', MapLayer.as_view(model=MushroomSpot, properties=('name',)), name='mushrooms')
+
+<head>
+    {% leaflet_js %}
+    {% leaflet_css %}
+</head>
+<body>
+
+<!--    {% leaflet_map "yourmap" %}-->
+{% leaflet_map "yourmap" callback="window.map_init_basic" %}
+
+</body>
+
 ```
 
-#### Add statics urls
+Adicionando os dados a traves do geojson:
 
-```python
-STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR
+```html
+{% load leaflet_tags %}
+
+    <script>
+      var dataurl = '{% url "geojson" %}';
+
+      window.addEventListener("map:init", function (event) {
+        var map = event.detail.map;
+        // Download GeoJSON data with Ajax
+        fetch(dataurl)
+          .then(function(resp) {
+            return resp.json();
+          })
+          .then(function(data) {
+            L.geoJson(data, {
+              onEachFeature: function onEachFeature(feature, layer) {
+                var props = feature.properties.popup_content;
+                layer.bindPopup(props);
+            }}).addTo(map);
+          });
+      });
+
+    </script>
+
+
+
+<head>
+    {% leaflet_js %}
+    {% leaflet_css %}
+</head>
+<body>
+
+<!--    {% leaflet_map "yourmap" %}-->
+{% leaflet_map "yourmap" %}
+
+</body>
+
 ```
 
+Mudando a tamanho do webmap.
+
+```html
+<style>
+    #yourmap {
+        width: 100%;
+        height: 800px;
+    }
+</style>
+```
+
+### configurando leaflet
+
+[Ver documentação](https://django-leaflet.readthedocs.io/en/latest/templates.html#configuration)
+
+```python
+# setting.py
+LEAFLET_CONFIG = {
+    # conf here
+}
+```
 
 ## Heroku
 como funciona: https://dzone.com/articles/how-heroku-works

@@ -25,7 +25,7 @@ SECRET_KEY = '95zx&%v=m**dr(ildm_aq+_-b7q5yb-fuy!qp1zta=c86&njoo'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['testserver']
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -39,8 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     'test_without_migrations',
+
     'djgeojson',
-    'map_proj.core',
+    'leaflet',
+
+    'map_proj.core.apps.CoreConfig',
 ]
 
 MIDDLEWARE = [
@@ -124,3 +127,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR
+
+LEAFLET_CONFIG = {
+    # 'SPATIAL_EXTENT': (-44, -40, -20, -22)
+    'DEFAULT_CENTER': (-22, -42),
+    'DEFAULT_ZOOM': 7,
+}

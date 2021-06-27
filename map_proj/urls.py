@@ -15,10 +15,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.views.generic import TemplateView
 
 from map_proj.core.views import fenomeno_geojson
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('geojson/', fenomeno_geojson, name='geojson'),
+    path('map/', TemplateView.as_view(template_name='map.html'), name='map'),
 ]
