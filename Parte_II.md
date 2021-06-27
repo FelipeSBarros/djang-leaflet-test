@@ -20,7 +20,7 @@ Vamos lá!
 ## criando validadores de longitude e latitude  
 
 ### Sobre os validadores:  
-Os validadores ([`validators`](https://docs.djangoproject.com/en/3.2/ref/forms/validation/#validators) ) fazem parte do sistema de validação de formulários e de campos do Django. Ao criarmos campos de uma determinada classe no nosso model, como por exemplo `integer`, o django cuidará automaticamente da validação do valor passado a este campo pelo formulário, retornando um erro quando o usuário ingressar um valor de texto no campo em questão. O interessante é que além dos validadores já implementados para cada classe, podemos criar outros, conforme a nossa necessidade.
+Os validadores ([`validators`](https://docs.djangoproject.com/en/3.2/ref/forms/validation/#validators), em inglês ) fazem parte do sistema de validação de formulários e de campos do Django. Ao criarmos campos de uma determinada classe no nosso model, como por exemplo `integer`, o django cuidará automaticamente da validação do valor passado a este campo pelo formulário, retornando um erro quando o usuário ingressar um valor de texto no campo em questão, por exemplo. O interessante é que além dos validadores já implementados para cada classe, podemos criar outros, conforme a nossa necessidade.
 
 > Por que necesitamos um validador de `latitude` e `longitude`?
 
@@ -29,7 +29,7 @@ Como estou explorando o desenvolvimento de um sistema de gestão de dados goegr�
 E como não se abre mão quando a questão é qualidade, uma saída será a criação de validadores personalizados para os campos de `latitude` e `logitude`, garantindo que esses possuem valores condizentes à nossa área de interesse.
 
 **O que precisamos saber:**
-os `validators` são funções que recebem um valor, apenas, o valor inserido pelo usuário no campo a ser validado, que passará por uma lógica de validação retornando um [`ValidationError`](https://docs.djangoproject.com/en/3.2/ref/forms/validation/#raising-validation-error) quando o valor inserido não passar nos testes. Com o `ValidationError` podemos customizar uma mensagem de erro, indicando ao usuário o motivo do valor não ter sido considerado válido.  
+os `validators` são funções que recebem um valor, apenas (neste caso, o valor inserido pelo usuário no campo a ser validado), que passará por uma lógica de validação retornando um [`ValidationError`](https://docs.djangoproject.com/en/3.2/ref/forms/validation/#raising-validation-error) quando o valor inserido não passar nos testes. Com o `ValidationError` podemos customizar uma mensagem de erro, indicando ao usuário o motivo do valor não ter sido considerado válido.  
 
 Então, criarei validadores dos campos de `latitude` e `longitude` para sempre que entrarem com valores que não contemplem a área do estado do Rio de Janeiro, um `ValidationError` será retornado.  
 
@@ -37,7 +37,7 @@ Então, criarei validadores dos campos de `latitude` e `longitude` para sempre q
 
 **O que é um `bouding box`?**
 
-Bounding box poderia ser traduzido por "retângulo envolvente" do estado, ou de uma feição espacial. Na imagem a baixo, vemos o território do estado do Rio de Janeiro e o retângulo envolvente que limita as suas coordenadas máximas e mínimas de longitude e latitude.  
+*Bounding box* poderia ser traduzido por "retângulo envolvente" do estado, ou de uma feição espacial. Na imagem a baixo, vemos o território do estado do Rio de Janeiro e o retângulo envolvente que limita as suas coordenadas máximas e mínimas de longitude e latitude.  
 
 ![](./map_proj/img/RJ_bbox.png)
 
@@ -46,11 +46,11 @@ Percebam que, como mencionado antes, o que conseguimos garantir é que os pares 
 ## Criando os testes:
 
 Antes de tudo, criamos os testes.
-Para isso, criarei uma função chamada `update_values` que receberá um `**kwargs`, que é uma forma de passar a uma função um conjunto de valores nomeados. Nessa função, crio um dicionário tendo como chave os nomes dos campos do meu `ModelForm`, e como valores, os valores esperados a cada campo.
+Para isso, criarei uma função chamada `update_values` que receberá um `**kwargs`, que é uma forma de passar a uma função um conjunto de valores nomeados. Nessa função, crio um dicionário tendo como chave os nomes dos campos do meu `ModelForm`, e como valores, os valores esperados e válidos de cada campo.
 
 Logo em seguida, crio um objeto chamado `finalData` que será o dicionário `validForm` criado anteriormente, mas com os parâmetros nomeados passados como `**kwargs` da função. Esse dicionário com os valores atualizados serão usadas para instanciar o meu `ModelForm` que será retornado ao fim da execussão.
 
-Fiz isso para poder ir, a cada teste, atualizando apenas os campos que quero simular valores a serem validados, sem ter que instanciar è passar sempre os valores do `ModelForm`.
+Fiz isso para poder atualizar, a cada teste, apenas os campos que quero simular valores a serem validados, sem ter que instanciar e passar sempre os valores do `ModelForm`.
 
 ```python
 class FenomenoFormValidatorsTest(TestCase):
@@ -66,11 +66,12 @@ class FenomenoFormValidatorsTest(TestCase):
         form = FenomenoForm(finalData)
         return form
 ```
-Assim, eu posso criar diferentes métodos de *Test Case*, usando o método criando anteriormente para alterar o valor iniciar a um que deva ser considerado inválido pelo validador.
+Assim, eu posso criar diferentes métodos de *Test Case*, usando o método criando anteriormente alterando o valor inicial a um inválido, a ser testado.
 
-Nos método uso o `assertEqual` para confirmar que o o texto do `AssertError` é o que esperamos. Para saber sobre outros [`assertions`](https://docs.python.org/3/library/unittest.html#unittest.TestCase.debug)
+Nos método uso o `assertEqual` para confirmar que o o texto do `AssertError` é o que esperamos. Veja o link a seguir para saber sobre outros [`assertions`](https://docs.python.org/3/library/unittest.html#unittest.TestCase.debug).
 
 ```python
+# tests.py
     def test_max_longitude(self):
         form = self.update_values(longitude='-45')
         form.is_valid()
@@ -158,9 +159,9 @@ class FenomenoForm(ModelForm):
 ...
 ```
 
-No desenvolvimento dessa solução percebi pelos testes criados que, ao informar uma latitude ou longitude que não passe pela validação, a criação do campo `geom` se tornava inválido (lembre-se que é no método clean do form que o campo `geom` recebe os valores de `longitude` e `latitude` formando uma classe `geojson` para, logo em seguida ser validado) por não receber um desses valores, gerando dois erros: o de validação do campo e o de validação do campo `geom`.
+No desenvolvimento dessa solução percebi pelos testes criados que, ao informar uma latitude ou longitude que não passe pela validação, a criação do campo `geom` se tornava inválido por não receber um desses valores, gerando dois erros: o de validação do campo e o de validação do campo `geom`. Lembre-se que é no método `clean` do `form` que o campo `geom` recebe os valores de `longitude` e `latitude` formando uma classe `geojson` para, logo em seguida ser validado.
 
-Para evitar isso, alterei o método clean de for a garantir que o campo `geom` só seja criado e validado, quando ambos valores (`longitude` e `latitude`) existam. Ou seja, tenham passado pelos validadores sem erro.
+Para evitar isso, alterei o método clean de forma garantir que o campo `geom` só seja criado e validado, quando ambos valores (`longitude` e `latitude`) existirem. Ou seja, tenham passado pelos validadores sem erro.
 
 ```python
 #forms.py
@@ -177,6 +178,21 @@ Para evitar isso, alterei o método clean de for a garantir que o campo `geom` s
         
         return cleaned_data
 
+```
+
+> Outro ponto (na verdade, erro) importante que só percebi a partir dos testes é que no `forms.py` eu não estava considerando o campo `geom` na lista de `fields` a serem usados. Com isso o mesmo não é passado ao banco de dados, mesma passando pelo método `clean` que o cria.
+
+Por esse motivo, tive que alterar algumas coisas no `forma.py`:
+- Inseri o campo `geom` à tupla de `fields` do `forms.py`. 
+- Inseri o campo `geom` com um widget de `HiddenInput`. Esse último, o fiz por se tratar de um campo que não quero expor ao usuário, jpa que será criado automaticamente no método `clean`. 
+
+Finalmente, a classe `Meta` do `forms.py` ficou da seguinte forma:
+
+```python
+    class Meta:
+        model = Fenomeno
+        fields = ('nome', 'data', 'hora', 'latitude', 'longitude', 'geom')
+        widgets = {'geom': HiddenInput()}
 ```
 
 ## View GeoJSONLayerView
@@ -205,7 +221,7 @@ Então, ciente de toda a mágica por trás do `GeoJSONLayerView` e o seu resulta
 
 ### Criando os testes da `View`
 
-Como estou testando justamente uma `view` que serializa o objeto do meu odelo em formado geojson e, sabendo que o `geom` só é criado ao usarmos o `ModelForm`, crio uma instância do mesmo, com valores válidos e o salva ao banco (do teste).
+Como estou testando justamente uma `view` que serializa o objeto do meu modelo em formado geojson e, sabendo que o `geom` só é criado ao usarmos o `ModelForm`, crio uma instância do mesmo, com valores válidos e o salva ao banco (do teste).
 Em seguida, teste se o estatus code de um request (metodo "get") ao path que pretendo usar para essa views ("/geojson/"), retorna 200, código que indica sucesso. [Veja mais sobre os códigos aqui](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes).
 No último teste, cifirmo se a resposta recebida é a esperada, considerando os dados registrados no formulário do `setUp`.
 
@@ -234,7 +250,7 @@ Obviamente, ambos testes falharão, pois ainda não criamos a view, nem a design
 
 Para fazê-los passar, vamos primeiro criar a view. Em `views.py` uma classe nova, herdando da classe `GeoJSONLayerView`. Ela será a view responsável por nos servir os dados do projeto já em `geojson` que serão consumidos em um *webmap*.
 
-O interessante é que também podemos informar o nome da propriedade do modelo em questão, a partir da qual será usada para apresentar informações no *popup* do mapa.
+Percebam que eu já estou considerando que o `geojson` virá com uma `properties`, a ser criada no model em questão e que terá nome de `popup-content`. Poderiamos adicionar a essa `property` quanta informação acharmos pertinente a ser apresentada no *popup* do mapa. Por agora estou apenas informar o nome do fenômeno mapeado.
 
 Um último detalhe é que, como estamos usando um `Class Based-View`, ao final a convertemos em view, com o método `as_view()`.
 
@@ -258,7 +274,7 @@ fenomeno_geojson = FenomenoGeoJson.as_view()
 
 ### Adicionando propriedade para *popup*  
 
-Por agora, adicionarei apenas o campo `nome` à propriedade do meu modelo. Mais à frente podemos incrementar. Mas por agora, só isso.
+Por agora, adicionarei apenas o campo `nome` à propriedade do meu modelo. Mais à frente podemos incrementar, adicionando um [`get_absolute_url`](https://docs.djangoproject.com/en/3.2/ref/models/instances/#get-absolute-url) por exemplo, para poder acessar aos detalhes do fenômeno a partir do *popup* do mapa.
 
 ```python
 #models.py
@@ -269,7 +285,7 @@ Por agora, adicionarei apenas o campo `nome` à propriedade do meu modelo. Mais 
         return popup
 ```
 
-Como precisaremos acessar essa view, precisamos incorporá-la na nossa `urls.py`:
+Para poder acessar essa view, precisamos incorporá-la na nossa `urls.py`:
 
 ```python
 # urls.py
@@ -285,7 +301,7 @@ urlpatterns = [
 
 ```
 
-Com isso teremos os nossos ultimos testes passando. Se ainda assim  você tiver curiosidade, pode acessar os dados pela *url* `http://127.0.0.1:8000/geojson/` e receberá os dados servidos em `geojson`:
+Com isso teremos os nossos últimos testes passando. Se ainda assim você tiver curiosidade, pode acessar os dados pela *url* `http://127.0.0.1:8000/geojson/` e receberá os dados servidos em `geojson`:
 
 ```
 {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"popup_content": "<strong><span>Nome: </span>teste</strong></p>", "model": "core.fenomeno"}, "id": 3, "geometry": {"type": "Point", "coordinates": [-42.0, -22.0]}}], "crs": {"type": "name", "properties": {"name": "EPSG:4326"}}}
