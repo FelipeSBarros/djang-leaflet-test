@@ -16,5 +16,5 @@ class Fenomeno(models.Model):
 
     @property
     def popup_content(self):
-        popup = f'<strong><span>Nome: </span>{self.nome}</strong></p>'
+        popup = f'<p><strong><span>Nome: </span>{self.nome}</strong></p>'
         return popup

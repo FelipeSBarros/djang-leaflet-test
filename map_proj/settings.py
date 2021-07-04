@@ -133,3 +133,8 @@ LEAFLET_CONFIG = {
     'DEFAULT_CENTER': (-22, -42),
     'DEFAULT_ZOOM': 7,
 }
+
+PROJECT_BBOX = {
+    'LON':{'Min':-44.887212, "Max":-40.95975},
+    'LAT':{'Min':-23.366868, "Max":-20.764962}
+}
