@@ -1,7 +1,7 @@
 from django.shortcuts import resolve_url as r
 from django.test import TestCase
 from geojson import Point
-
+from django.conf import settings
 from map_proj.core.forms import FenomenoForm
 from map_proj.core.models import Fenomeno
 
