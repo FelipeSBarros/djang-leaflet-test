@@ -201,6 +201,6 @@ Finalmente, a classe `Meta` do `forms.py` ficou da seguinte forma:
         widgets = {'geom': HiddenInput()}
 ```
 
-Pronto, com tudo isso que fizemos, já temos um sistema que, apesar de não poder fazer consultas espacias, é capaz de validar os campos de `latitude` e `longitude`.
+Pronto, com tudo isso que fizemos, já temos um sistema que, apesar de não poder fazer consultas espaciais, é capaz de validar os campos de `latitude` e `longitude`.
 
-No próximo artigo, vou abordar sobre o que está por de trás de toda mágica de um webmap, usando o módulo [`django-leaflet`](https://django-leaflet.readthedocs.io/en/latest/). Enquanto isso, dê uma olhada [no que tenho desenvolvido.](http://felipesbarros.github.io)
+No próximo artigo, vou abordar sobre o que está por trás de toda mágica de um webmap, usando o módulo [`django-leaflet`](https://django-leaflet.readthedocs.io/en/latest/). Enquanto isso, dê uma olhada [no que tenho desenvolvido.](http://felipesbarros.github.io)
