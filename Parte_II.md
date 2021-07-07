@@ -73,32 +73,29 @@ class FenomenoFormValidatorsTest(TestCase):
 
 ```
 
-Nos métodos uso o `assertEqual` para confirmar que o texto da mensagem de erro é o que esperamos. Veja o link a seguir para saber sobre outros [`assertions`](https://docs.python.org/3/library/unittest.html#unittest.TestCase.debug).
+Nos métodos uso primeiro o `assertFalse` para confirmar que o formulário não é valido para, em seguida, testar com o `assertEqual` se o texto da mensagem de erro é o que esperamos. Veja o link a seguir para saber sobre outros [`assertions`](https://docs.python.org/3/library/unittest.html#unittest.TestCase.debug).
 
 ```python
 # tests.py
-def test_max_longitude(self):
-  form = self.create_form(longitude='-45')
-  form.is_valid()
-  self.assertEqual(form.errors["longitude"][0], 'Coordenada longitude fora do contexto do estado do Rio de Janeiro')
+    def test_max_longitude_raises_error(self):
+        form = self.create_form(longitude='-45')
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors["longitude"][0], 'Coordenada longitude fora do contexto do estado do Rio de Janeiro')
 
+    def test_min_longitude_raises_error(self):
+        form = self.create_form(longitude='-40')
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors["longitude"][0], 'Coordenada longitude fora do contexto do estado do Rio de Janeiro')
 
-def test_min_longitude(self):
-  form = self.create_form(longitude='-40')
-  form.is_valid()
-  self.assertEqual(form.errors["longitude"][0], 'Coordenada longitude fora do contexto do estado do Rio de Janeiro')
+    def test_max_latitude_raises_error(self):
+        form = self.create_form(latitude='-24')
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors["latitude"][0], 'Coordenada latitude fora do contexto do estado do Rio de Janeiro')
 
-
-def test_max_latitude(self):
-  form = self.create_form(latitude='-24')
-  form.is_valid()
-  self.assertEqual(form.errors["latitude"][0], 'Coordenada latitude fora do contexto do estado do Rio de Janeiro')
-
-
-def test_min_latitude(self):
-  form = self.create_form(latitude='-19')
-  form.is_valid()
-  self.assertEqual(form.errors["latitude"][0], 'Coordenada latitude fora do contexto do estado do Rio de Janeiro')
+    def test_min_latitude_raises_error(self):
+        form = self.create_form(latitude='-19')
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors["latitude"][0], 'Coordenada latitude fora do contexto do estado do Rio de Janeiro')
 
 ```
 

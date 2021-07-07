@@ -58,22 +58,22 @@ class FenomenoFormValidatorsTest(TestCase):
 
     def test_max_longitude_raises_error(self):
         form = self.create_form(longitude='-45')
-        form.is_valid()
+        self.assertFalse(form.is_valid())
         self.assertEqual(form.errors["longitude"][0], 'Coordenada longitude fora do contexto do estado do Rio de Janeiro')
 
     def test_min_longitude_raises_error(self):
         form = self.create_form(longitude='-40')
-        form.is_valid()
+        self.assertFalse(form.is_valid())
         self.assertEqual(form.errors["longitude"][0], 'Coordenada longitude fora do contexto do estado do Rio de Janeiro')
 
     def test_max_latitude_raises_error(self):
         form = self.create_form(latitude='-24')
-        form.is_valid()
+        self.assertFalse(form.is_valid())
         self.assertEqual(form.errors["latitude"][0], 'Coordenada latitude fora do contexto do estado do Rio de Janeiro')
 
     def test_min_latitude_raises_error(self):
         form = self.create_form(latitude='-19')
-        form.is_valid()
+        self.assertFalse(form.is_valid())
         self.assertEqual(form.errors["latitude"][0], 'Coordenada latitude fora do contexto do estado do Rio de Janeiro')
 
 
