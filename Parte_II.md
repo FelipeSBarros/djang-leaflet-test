@@ -3,13 +3,13 @@
 Na [primeira publicação](https://www.linkedin.com/pulse/criando-um-sistema-para-gest%C3%A3o-de-dados-geogr%C3%A1ficos-e-felipe-/) onde exploro a possibilidade de implementar um sistema de gestão de dados geoespaciais com Django, sem a necessidade de usar um servidor com PostGIS, vimos sobre:
 * o [`django-geojson`](https://django-geojson.readthedocs.io/en/latest/) para simular um campo geográfico no models;
 * o [`geojson`](https://geojson.readthedocs.io/en/latest/) para criar um objeto da classe *geojson* e realizar as validações necessárias para garantir robustez do sistema;  
-* a criação do fomulário de registro de dados usando o [`ModelForm`](https://docs.djangoproject.com/en/3.2/topics/forms/modelforms/#modelform);  
+* a criação do formulário de registro de dados usando o [`ModelForm`](https://docs.djangoproject.com/en/3.2/topics/forms/modelforms/#modelform);  
 
 Agora é hora de evoluir e expandir um pouco o sistema criado. Nessa publicação vamos criar validadores de longitude e latitude para poder restringir a inserção de dados a uma determinada região. Com isso, o próximo passo (e artigo) será criar o *webmap* no nosso sistema. Mas isso fica para breve.
 
 Vamos ao que interessa:
 
-## criando validadores de longitude e latitude  
+## Criando validadores de longitude e latitude  
 
 ### Sobre os validadores:  
 Os validadores ([`validators`](https://docs.djangoproject.com/en/3.2/ref/forms/validation/#validators), em inglês) fazem parte do sistema de validação de formulários e de campos do Django. Ao criarmos campos de uma determinada classe no nosso modelo, como por exemplo *integer*, o Django cuidará automaticamente da validação do valor passado a este campo pelo formulário, retornando um erro quando o usuário ingressar um valor de texto no campo em questão, por exemplo. O interessante é que além dos validadores já implementados para cada classe, podemos criar outros, conforme a nossa necessidade.
@@ -27,7 +27,7 @@ Então, criarei validadores dos campos de `latitude` e `longitude` para sempre q
 
 > :warning: Essa não é uma solução ótima já que, dessa forma, estamos considerando o *bounding box* do estado em questão, e com isso haverá áreas onde as coordenadas serão válidas, ainda que não estejam internas ao território estadual. Ainda assim, acredito que seja uma solução boa suficiente para alguns casos, principalmente por não depender de toda infraestrutura de GIS.
 
-**O que é um `bouding box`?**
+**O que é um `bounding box`?**
 
 *Bounding box* poderia ser traduzido por "retângulo envolvente" do estado, ou de uma feição espacial. Na imagem abaixo, vemos o território do estado do Rio de Janeiro e o retângulo envolvente que limita as suas coordenadas máximas e mínimas de longitude e latitude.  
 
@@ -40,10 +40,12 @@ Por uma questão de organização, criei uma variável no `settings.py` do meu p
 Ao fim do meu `settings.py`, adicionei:
 
 ```python
-PROJECT_BBOX = {
-    'LON':{'Min':-44.887212, "Max":-40.95975},
-    'LAT':{'Min':-23.366868, "Max":-20.764962}
-}
+# settings.py
+BOUNDING_BOX_LAT_MAX = -20.764962
+BOUNDING_BOX_LAT_MIN = -23.366868
+BOUNDING_BOX_LON_MAX = -40.95975
+BOUNDING_BOX_LON_MIN = -44.887212
+
 ```
 
 Agora, sim. Vamos criar os testes:
@@ -143,11 +145,11 @@ from django.conf import settings
 
 
 def validate_longitude(lon):
-    if lon < settings.PROJECT_BBOX['LON']['Min'] or lon > settings.PROJECT_BBOX['LON']['Max']:
+    if lon < settings.BOUNDING_BOX_LON_MIN or lon > settings.BOUNDING_BOX_LON_MAX:
         raise ValidationError("Coordenada longitude fora do contexto do estado do Rio de Janeiro", "erro longitude")
 
 def validate_latitude(lat):
-    if lat < settings.PROJECT_BBOX['LAT']['Min'] or lat > settings.PROJECT_BBOX['LAT']['Max']:
+    if lat < settings.BOUNDING_BOX_LAT_MIN or lat > settings.BOUNDING_BOX_LAT_MAX:
         raise ValidationError("Coordenada latitude fora do contexto do estado do Rio de Janeiro", "erro latitude")
 ```
 
