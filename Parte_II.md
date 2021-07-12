@@ -14,7 +14,7 @@ Vamos ao que interessa:
 ### Sobre os validadores:  
 Os validadores ([`validators`](https://docs.djangoproject.com/en/3.2/ref/forms/validation/#validators), em inglês) fazem parte do sistema de validação de formulários e de campos do Django. Ao criarmos campos de uma determinada classe no nosso modelo, como por exemplo *integer*, o Django cuidará automaticamente da validação do valor passado a este campo pelo formulário, retornando um erro quando o usuário ingressar um valor de texto no campo em questão, por exemplo. O interessante é que além dos validadores já implementados para cada classe, podemos criar outros, conforme a nossa necessidade.
 
-> Por que necessitamos um validador de `latitude` e `longitude`?
+> Por que necessitamos um validador para os campos de `latitude` e `longitude`?
 
 Como estou explorando o desenvolvimento de um sistema de gestão de dados geográficos com recursos limitados, ou seja, sem uma infraestrutura de operações e consultas espaciais, não poderei consultar se o par de coordenadas inserido pelo usuário está contido nos limites de um determinado estado (uma operação clássica com dados geográficos). Não ter essa possibilidade de validação poderá colocar em risco a qualidade do dado inserido.
 
@@ -35,7 +35,7 @@ Então, criarei validadores dos campos de `latitude` e `longitude` para sempre q
 
 Percebam que, como mencionado antes, o que conseguimos garantir é que os pares de coordenadas estejam em alguma área interna ao retângulo em questão o que não garante que as mesmas estejam no território do estado do Rio de Janeiro.
 
-Por uma questão de organização, criei uma variável no `settings.py` do meu projeto que é um dicionário com os valores máximos e mínimos de latitude e longitude. Essa proposta surgiu do [`cuducos`](https://twitter.com/cuducos), e achei que valia a pena implementar. Entendo que é mais organizado e evita possíveis falhas humanas, caso os mesmos valores tenham que ser usados em outras partes do sistema.
+Por uma questão de organização, criei no `settings.py` do meu projeto  as variáveis com os valores máximos e mínimos de latitude e longitude. Essa proposta surgiu do [`cuducos`](https://twitter.com/cuducos), e achei que valia a pena implementar. Entendo que é mais organizado e evita possíveis falhas humanas, caso os mesmos valores tenham que ser usados em outras partes do sistema.
 
 Ao fim do meu `settings.py`, adicionei:
 
@@ -45,15 +45,15 @@ BOUNDING_BOX_LAT_MAX = -20.764962
 BOUNDING_BOX_LAT_MIN = -23.366868
 BOUNDING_BOX_LON_MAX = -40.95975
 BOUNDING_BOX_LON_MIN = -44.887212
-
 ```
 
 Agora, sim. Vamos criar os testes:
-
+> se você não entendeu o motivo pelo qual eu começo criando testes, dá uma olhada na [primeira publicação](https://www.linkedin.com/pulse/criando-um-sistema-para-gest%C3%A3o-de-dados-geogr%C3%A1ficos-e-felipe-/). Nela comento um pouco sobre a abordagem *Test Driven Development (TDD)*.  
+> 
 ## Criando os testes:  
 No `tests.py`, criei uma nova classe de teste `TestCase`, com o objetivo de testar os validadores simulando o uso do `FenomenoForm`. Por isso criei [`staticmethod`](https://realpython.com/instance-class-and-static-methods-demystified/) chamado `create_form` que cria um dicionário com chaves e valores válidos do formulário em questão, que ao receber um conjunto de argumentos nomeados [`**kwargs`](https://realpython.com/python-kwargs-and-args/) terá tais argumentos atualizados e usados para instanciar e retornar o `FenomenoForm`. 
 
-Fiz isso para, a cada teste, ter uma intância do `FenoenoForm` alterando apenas os campos que quero simular valores a serem validados, sem ter que passar sempre todos os valores do `ModelForm`. Assim, eu posso criar diferentes métodos de *Test Case*, usando o método criado anteriormente alterando o valor inicial a um inválido, a ser testado.
+Fiz isso para, a cada teste, ter uma instância do `FenoenoForm` alterando apenas os campos que quero simular valores a serem validados, sem ter que passar sempre todos os valores do `ModelForm`. Assim, eu posso criar diferentes métodos de *Test Case*, usando o método criado anteriormente alterando o valor inicial a um inválido, testando se de fato um `ValidationError` é retornado.
 
 ```python
 # tests.py
@@ -73,7 +73,7 @@ class FenomenoFormValidatorsTest(TestCase):
 
 ```
 
-Nos métodos uso primeiro o `assertFalse` para confirmar que o formulário não é valido para, em seguida, testar com o `assertEqual` se o texto da mensagem de erro é o que esperamos. Veja o link a seguir para saber sobre outros [`assertions`](https://docs.python.org/3/library/unittest.html#unittest.TestCase.debug).
+Nos métodos de teste uso primeiro o `assertFalse` do método de validação do formulário (`form.is_valid()`) para confirmar que o mesmo não é valido para, em seguida, testar com o `assertEqual` se o texto da mensagem de erro é o que esperamos. Veja o link a seguir para saber sobre outros [`assertions`](https://docs.python.org/3/library/unittest.html#unittest.TestCase.debug).
 
 ```python
 # tests.py
