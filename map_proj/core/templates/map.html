@@ -1,0 +1,39 @@
+{% load leaflet_tags %}
+
+    <script>
+      var dataurl = '{% url "geojson" %}';
+
+      window.addEventListener("map:init", function (event) {
+        var map = event.detail.map;
+        // Download GeoJSON data with Ajax
+        fetch(dataurl)
+          .then(function(resp) {
+            return resp.json();
+          })
+          .then(function(data) {
+            L.geoJson(data, {
+              onEachFeature: function onEachFeature(feature, layer) {
+                var props = feature.properties.popup_content;
+                layer.bindPopup(props);
+            }}).addTo(map);
+          });
+      });
+
+    </script>
+
+<style>
+    #yourmap {
+        width: 100%;
+        height: 100%;
+    }
+</style>
+
+<head>
+    {% leaflet_js %}
+    {% leaflet_css %}
+</head>
+<body>
+
+{% leaflet_map "yourmap" %}
+
+</body>
