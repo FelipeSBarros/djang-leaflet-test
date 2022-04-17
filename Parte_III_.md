@@ -1,8 +1,8 @@
 # Criando um sistema para gestão de dados geográficos de forma simples e robusta III
 
 Caso não tenha visto as publicações anteriores, deixo aqui o *link* e os temas abordados:
- 1. [Na primeira publicação](https://www.linkedin.com/pulse/criando-um-sistema-para-gest%C3%A3o-de-dados-geogr%C3%A1ficos-e-felipe-/) falo sobre o [`django-geojson`](https://django-geojson.readthedocs.io/en/latest/) para simular um campo geográfico no models; o [`geojson`](https://geojson.readthedocs.io/en/latest/) para criar um objeto da classe *geojson* e realizar as validações necessárias para garantir robustez do sistema, e a criação do fomulário de registro de dados usando o [`ModelForm`](https://docs.djangoproject.com/en/3.2/topics/forms/modelforms/#modelform);
- 1. [Na segunda publicação](https://www.linkedin.com/pulse/criando-um-sistema-para-gest%C3%A3o-de-dados-geogr%C3%A1ficos-e-felipe--1e/) apresento os validadores de campo do `Django` como uma ferramenta fundamental na qualidade dos dados espaciais, **sem depender de insfraestrutura GIS**.
+ 1. [Na primeira publicação](https://www.linkedin.com/pulse/criando-um-sistema-para-gest%C3%A3o-de-dados-geogr%C3%A1ficos-e-felipe-/) falo sobre o [`django-geojson`](https://django-geojson.readthedocs.io/en/latest/) para simular um campo geográfico no models; o [`geojson`](https://geojson.readthedocs.io/en/latest/) para criar um objeto da classe *geojson* e realizar as validações necessárias para garantir robustez do sistema, e a criação do formulário de registro de dados usando o [`ModelForm`](https://docs.djangoproject.com/en/3.2/topics/forms/modelforms/#modelform);
+ 1. [Na segunda publicação](https://www.linkedin.com/pulse/criando-um-sistema-para-gest%C3%A3o-de-dados-geogr%C3%A1ficos-e-felipe--1e/) apresento os validadores de campo do `Django` como uma ferramenta fundamental na qualidade dos dados espaciais, **sem depender de infraestrutura GIS**.
 
 Agora, a ideia é implementar um *webmap* usando o módulo [`django-leaflet`](https://django-leaflet.readthedocs.io/en/latest/) para apresentar os fenômenos mapeados com algumas informações no *popup* do mapa. Para isso iremos:
 
@@ -49,9 +49,9 @@ Então, ciente de toda a mágica por trás do `GeoJSONLayerView` e o seu resulta
 
 ### Criando os testes da `view`
 
-Como estou testando justamente uma `view` que serializa o objeto do meu modelo em formado `geojson` e, sabendo que o `geom` só é criado ao usarmos o `ModelForm`, no `tests.py` vou criar uma instância do `ModelForm` com valores válidos a ser salva no banco de dados do teste. Isso tudo em um novo `TestCase`. E a partir da instância salva:
+Como estou testando justamente uma `view` que serializa o objeto do meu modelo em formato `geojson` e, sabendo que o `geom` só é criado ao usarmos o `ModelForm`, no `tests.py` vou criar uma instância do `ModelForm` com valores válidos a ser salva no banco de dados do teste. Isso tudo em um novo `TestCase`. E a partir da instância salva:
 
-- Confirmo se o *status code* do request (método "get") ao *path* que pretendo usar para essa views (no caso, "/geojson/"), retorna 200, código que indica sucesso no processode *request/response*. [Veja mais sobre os códigos aqui](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes).
+- Confirmo se o *status code* do request (método "get") ao *path* que pretendo usar para essa views (no caso, "/geojson/"), retorna 200, código que indica sucesso no processo de *request/response*. [Veja mais sobre os códigos aqui](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes).
 
 - Em seguida, confirmo se a resposta recebida é uma `FetureCollection` com os dados da instância criada anteriormente.
 
@@ -154,9 +154,9 @@ Os autores do projeto `django-leaflet` deixam alguns pontos que justificam sua a
 - Controle da aparência dos mapas a partir do Django `settings.py`;
 
 :warning: E por último, mas não menos importante:
-> `django-leaflet` é compativel com os campos  `django-geojson`, o que permite o uso de dados geográficos sem a necesidade de uma base de dados espaciais. O motivo de toda essa série que tenho produzido :)
+> `django-leaflet` é compativel com os campos  `django-geojson`, o que permite o uso de dados geográficos sem a necessidade de uma base de dados espaciais. O motivo de toda essa série que tenho produzido :)
 
-Bem legal! Ele criaram um pacote já compatível com o pacote `django-geojson`, que nos permite simular campos geográficos sem a neccessidade de toda a infraestrutura de uma base de dados de SIG (PostGIS, por exemplo).
+Bem legal! Eles criaram um pacote já compatível com o pacote `django-geojson`, que nos permite simular campos geográficos sem a neccessidade de toda a infraestrutura de uma base de dados de SIG (PostGIS, por exemplo).
 
 :warning: Porém, atenção ao seguinte detalhe:
 > #### Dependencies
@@ -170,7 +170,7 @@ Ou seja, o `django-leaflet` depende da biblioteca [GDAL](https://pypi.org/projec
 pip install django-leaflet
 ```
 
-Após a sua instalação é necessário inclui-lo no `settings.py` como *INSTALLED_APPS*. Não esqueça de adicioná-lo ao `requirements.txt` do projeto, também.
+Após a sua instalação é necessário incluí-lo no `settings.py` como *INSTALLED_APPS*. Não esqueça de adicioná-lo ao `requirements.txt` do projeto, também.
 
 ```python
 # settings.py
@@ -294,7 +294,7 @@ L.geoJson(data, {
             }}).addTo(map);
 ```
 
-Com o `runserver` em execussão, já poderemos ver o nosso mapa com o dado cerrago e as propriedades que definimos como *popup*:
+Com o `runserver` em execução, já poderemos ver o nosso mapa com o dado carregado e as propriedades que definimos no *popup*:
 
 ![](./map_proj/img/leaflet_2.png)
 
@@ -302,7 +302,7 @@ Com o `runserver` em execussão, já poderemos ver o nosso mapa com o dado cerra
 
 **Mudando a tamanho do *webmap*:**
 
-Antes de passarmos às cofigurações do `leaflet`, podemos alterar as dimensões do mapa definindo um `style`. Por exemplo, para que o mapa ocupe toda a área possível do navegador, basta adicionarmos:
+Antes de passarmos às configurações do `leaflet`, podemos alterar as dimensões do mapa definindo um `style`. Por exemplo, para que o mapa ocupe toda a área possível do navegador, basta adicionarmos:
 
 ```html
 <style>
