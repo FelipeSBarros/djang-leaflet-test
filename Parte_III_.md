@@ -58,7 +58,7 @@ Então, ciente de toda a mágica por trás do `GeoJSONLayerView` e o seu resulta
 
 ### Criando os testes da `view`
 
-Como estou testando justamente uma `view` que serializa o objeto do meu modelo em formato `geojson` e, sabendo que o `geom` só é criado ao usarmos o `ModelForm`, no `tests.py` vou criar uma instância do `ModelForm` com valores válidos a ser salva no banco de dados do teste. Isso tudo em um novo `TestCase`. E a partir da instância salva:
+Como estou testando justamente uma `view` que serializa o objeto do meu modelo salvo no banco em formato `geojson` precisarei adicionar ao `setUp` do meu `TestCase` valores válidos ao banco de dados do teste. Sem isso, não poderemos confirmar se a serialização está ocorrendo de forma correta. E, uma vez salvo um conjunto básico de testes:
 
 - Confirmo se o *status code* do request (método "get") ao *path* que pretendo usar para essa views (no caso, "/geojson/"), retorna 200, código que indica sucesso no processo de *request/response*. [Veja mais sobre os códigos aqui](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes).
 
@@ -68,7 +68,7 @@ Como estou testando justamente uma `view` que serializa o objeto do meu modelo e
 # testes.py
 class FenomenoGeoJsonTest(TestCase):
     def setUp(self):
-        self.form = Fenomeno.objects.create(  # todo usar ORM passar direto ao banco para evitar efeito colateral
+        self.form = Fenomeno.objects.create(
             nome="Teste",
             data="2020-01-01",
             hora="09:12:12",
