@@ -12,15 +12,15 @@ class FenomenoForm(ModelForm):
 
     class Meta:
         model = Fenomeno
-        fields = ('nome', 'data', 'hora', 'latitude', 'longitude', 'geom')
-        widgets = {'geom': HiddenInput()}
+        fields = ("nome", "data", "hora", "latitude", "longitude", "geom")
+        widgets = {"geom": HiddenInput()}
 
     def clean(self):
         cleaned_data = super().clean()
-        lon = cleaned_data.get('longitude')
-        lat = cleaned_data.get('latitude')
+        lon = cleaned_data.get("longitude")
+        lat = cleaned_data.get("latitude")
         if all((lon, lat)):
-            cleaned_data['geom'] = Point((lon, lat))
-            if not cleaned_data['geom'].is_valid:
-                raise ValidationError('Geometria inválida')
+            cleaned_data["geom"] = Point((lon, lat))
+            if not cleaned_data["geom"].is_valid:
+                raise ValidationError("Geometria inválida")
         return cleaned_data

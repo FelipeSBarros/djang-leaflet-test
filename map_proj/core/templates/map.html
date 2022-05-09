@@ -13,7 +13,7 @@
           .then(function(data) {
             L.geoJson(data, {
               onEachFeature: function onEachFeature(feature, layer) {
-                var props = feature.properties.popup_content;
+                var props = "<p><strong><span>Nome: </span> " + feature.properties.popup_content + "</strong></p>";
                 layer.bindPopup(props);
             }}).addTo(map);
           });
