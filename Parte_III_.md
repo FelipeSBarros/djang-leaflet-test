@@ -2,9 +2,9 @@
 
 Caso não tenha visto as publicações anteriores, deixo aqui o *link* e os temas abordados:
  1. [Na primeira publicação](https://www.linkedin.com/pulse/criando-um-sistema-para-gest%C3%A3o-de-dados-geogr%C3%A1ficos-e-felipe-/) falo sobre o [`django-geojson`](https://django-geojson.readthedocs.io/en/latest/) para simular um campo geográfico no models; o [`geojson`](https://geojson.readthedocs.io/en/latest/) para criar um objeto da classe *geojson* e realizar as validações necessárias para garantir robustez do sistema, e a criação do formulário de registro de dados usando o [`ModelForm`](https://docs.djangoproject.com/en/3.2/topics/forms/modelforms/#modelform);
- 1. [Na segunda publicação](https://www.linkedin.com/pulse/criando-um-sistema-para-gest%C3%A3o-de-dados-geogr%C3%A1ficos-e-felipe--1e/) apresento os validadores de campo do `Django` como uma ferramenta fundamental na qualidade dos dados espaciais, **sem depender de infraestrutura GIS**.
+ 1. [Na segunda publicação](https://www.linkedin.com/pulse/criando-um-sistema-para-gest%C3%A3o-de-dados-geogr%C3%A1ficos-e-felipe--1e/) apresento os validadores de campo do `Django` como uma ferramenta fundamental na qualidade dos dados espaciais, **sem depender de infraestrutura SIG (GIS)**.
 
-Agora, a ideia é implementar um *webmap* usando o módulo [`django-leaflet`](https://django-leaflet.readthedocs.io/en/latest/) para apresentar os fenômenos mapeados com algumas informações no *popup* do mapa. Para isso iremos:
+Agora a ideia é implementar um *webmap* usando o módulo [`django-leaflet`](https://django-leaflet.readthedocs.io/en/latest/) para apresentar os fenômenos mapeados com algumas informações no *popup* do mapa. Para isso iremos:
 
 * usar o `GeoJSONLayerView`, do [`django-geojson`](https://django-geojson.readthedocs.io/en/latest/) para retornar os dados salvos no formato apropriado para exibição no *webmap*;  
 * usar o [`django-leaflet`](https://django-leaflet.readthedocs.io/en/latest/) para, além de implementar o *webmap*, podermos usar várias outras ferramentas (`widget`);
@@ -13,7 +13,7 @@ Vamos lá!
 
 ## View GeoJSONLayerView
 
-A serialização ou, em inglês `serialization`, é o processo/mecanismo de tradução dos objetos armazenados na base de dados em outros formatos (em geral, baseado em texto como, por exemplo, XML ou JSON), para serem enviados ou consumidos no processo de *request/response*.
+A serialização ou, em inglês `serialization`, é o processo/mecanismo de tradução dos objetos armazenados na base de dados em outros formatos (em geral, baseado em texto como, por exemplo, XML ou JSON), para serem enviados e/ou consumidos no processo de *request/response*.
 
 No nosso caso isso será importante, pois para apresentar os dados salvos em um *webmap*, precisaremos servi-los no formato `geojson`. E é aí que o `django-geojson` entra. Nós o utilizaremos para fazer a mágica acontecer ao usar a classe [`GeoJSONLayerView`](https://django-geojson.readthedocs.io/en/latest/views.html#geojson-layer-view).
 
@@ -21,14 +21,14 @@ A classe `GeoJSONLayerView` é um [`mixin`](https://docs.djangoproject.com/en/3.
 
 Para entender a serialização, segue um exemplo...  
 
-Ao acessar os dados do banco de dados, temos uma `QuerySet`.
+Ao acessar os dados do banco de dados do nosso projeto, temos uma `QuerySet`.
 
 ```python
 >>> Fenomeno.objects.all()
 <QuerySet [<Fenomeno: fenomeno_teste>]>
 ```
 
-Ao acessar a geometria de um objeto do banco de dados, temos um `geojson`.
+Ao acessar a geometria de um objeto do banco de dados do nosso projeto, temos um `geojson`.
 
 ```python
 >>> Fenomeno.objects.get(pk=3).geom
@@ -58,7 +58,7 @@ Então, ciente de toda a mágica por trás do `GeoJSONLayerView` e o seu resulta
 
 ### Criando os testes da `view`
 
-Como estou testando justamente uma `view` que serializa o objeto do meu modelo em formato `geojson`, precisarei desses dados salvos no banco de dados. Para tanto, vou adicionar ao `setUp` do meu `TestCase` valores válidos ao banco de dados do teste. Sem isso, não poderemos confirmar se a serialização está ocorrendo de forma correta. E, uma vez salvo um conjunto básico de testes:
+Como estou testando justamente uma `view` que serializa o objeto do meu modelo em formato `geojson`, precisarei desses dados salvos no banco de dados. Para tanto, vou adicionar ao `setUp` do meu `TestCase` valores válidos ao banco de dados do teste. Sem isso, não poderemos confirmar se a serialização está ocorrendo de forma correta. E, uma vez salvo, realizo um conjunto básico de testes:
 
 - Confirmo se o *status code* do request (método "get") ao *path* que pretendo usar para essa views (no caso, "/geojson/"), retorna 200, código que indica sucesso no processo de *request/response*. [Veja mais sobre os códigos aqui](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes).
 
@@ -188,7 +188,7 @@ Você deve estar se perguntando: "por quê usar o `django-leaflet` se eu posso u
 
 Os autores do projeto `django-leaflet` deixam alguns pontos que justificam sua adoção na página da documentação. Das quais eu destaco:
 - Possibilidade de uso das ferramentas de edição de geometría usando os `widget`;
-- Fácil integração dos `widgets` na página `admin`;
+- Fácil integração dos `widgets` na página `admin` do Django;
 - Controle da aparência dos mapas a partir do Django `settings.py`;
 
 :warning: E por último, mas não menos importante:
@@ -205,7 +205,9 @@ Bem legal! Eles criaram um pacote já compatível com o pacote `django-geojson`,
 pip install django-leaflet
 ```
 
-Após a sua instalação é necessário incluí-lo no `settings.py` como *INSTALLED_APPS*. :warning: Não esqueça de adicioná-lo ao `requirements.txt` do projeto, também.
+Após a sua instalação é necessário incluí-lo no `settings.py` como *INSTALLED_APPS*. 
+
+:warning: Não esqueça de adicioná-lo ao `requirements.txt` do projeto, também.
 
 ```python
 # settings.py
@@ -224,6 +226,8 @@ Com `leaflet` instalado, devemos então:
 1. Na pasta da nossa *app*, vamos criar uma pasta chamada "templates";
 2. E nessa pasta, criar um arquivo HTML (neste caso vou chamar de "map.html";
 3. Nessa página vamos carregar as [`template_tags`](https://www.geeksforgeeks.org/django-template-tags/) do `leaflet` para poder usar `leaflet_js`, `leaflet_css` e o `leaflet_map`:
+
+Nosso `map.html`:  
 
 ```html
 {% load leaflet_tags %}
@@ -266,7 +270,7 @@ Isso já o suficiente para termos nosso *webmap* apresentado:
 
 ![](./map_proj/img/leaflet_1.png)
 
-Imagino que não seja o que esperava, né? Mas fique calmo, já vamos ver como alterar as configurações do mapa. 
+Imagino que não seja o que esperava, né? Fique calmo. O leaflet buscou as configurações do mapa e, como não encontrou, retornou o mesmo com as configurações padrão. Veremos em breve como alterar as configurações do mapa. 
 
 Antes disso, vamos "linkar" a view que nos serve o `geojson` com os dados salvos no banco com o *webmap* em questão, para que os dados sejam apresentados.
 
@@ -314,7 +318,7 @@ Então, iremos adicionar um *script* à nossa página no qual uma variável `dat
 
 ```
 
-Veja que para a criação da variável `dataurl` estamos usando a `template_tag` do django:
+Veja que, para a criação da variável `dataurl`, estamos usando a `template_tag` do django:
 `var dataurl = '{% url "geojson" %}';`
 
 Veja mais sobre ela [aqui](https://docs.djangoproject.com/en/4.0/ref/templates/builtins/#url).
@@ -335,7 +339,7 @@ Com o `runserver` em execução, já poderemos ver o nosso mapa com o dado carre
 
 :warning: Garanta que você já tenha inserido algum dado ao seu projeto ;)
 
-**Mudando a tamanho do *webmap*:**
+**Mudando o tamanho do *webmap*:**
 
 Antes de passarmos às configurações do `leaflet`, podemos alterar as dimensões do mapa definindo um `style`. Por exemplo, para que o mapa ocupe toda a área possível do navegador, basta adicionarmos:
 
@@ -368,7 +372,7 @@ Com isso nosso mapa sempre será apresentado centralizado nas coordenadas (-22, 
 
 ![](map_proj/img/leaflet_4.png)
 
-Pronto, com os artigos já publicados, já temos um sistema com formulário de inserção de dados, com as devidas validações dos dados preenchidos no mesmo, assim como um *webmap* apresentando-os ao mundo :-).
+Pronto: com esses três artigos, já temos um sistema com formulário de inserção de dados, com as devidas validações dos dados preenchidos no mesmo, assim como um *webmap* apresentando-os ao mundo :-).
 
 Na próxima publicação vamos ver como fazer o *deploy* desse sistema no [heroku](https://www.heroku.com/) :rocket:.
 
